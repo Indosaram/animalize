@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Signing secrets
+.env.signing
+cert.b64
+cert.p12
+extract_cert_info.py
