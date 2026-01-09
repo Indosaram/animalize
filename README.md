@@ -1,49 +1,49 @@
 # 🐾 Animalize
 
-**Animalize**는 키보드 입력을 감지하여 동물의 숲(Animal Crossing) 스타일의 효과음(Animalese)을 실시간으로 재생해주는 귀여운 데스크탑 애플리케이션입니다. 타이핑하는 즐거움을 더해보세요!
+**Animalize** is a cute desktop application that detects your keyboard input and plays Animal Crossing style sound effects (Animalese) in real-time. Add a touch of magic to your daily typing!
 
-## ✨ 주요 기능
+## ✨ Key Features
 
-- **실시간 소리 반응:** 키보드 타이핑 시 각 문자에 대응하는 동물의 숲 음성 및 효과음 재생.
-- **다양한 보이스:** 남성(Male), 여성(Female) 보이스 및 여러 가지 음색(Voice 1~4) 선택 가능.
-- **글로벌 단축키 감지:** 앱이 백그라운드에 있어도 시스템 전체의 키 입력을 감지하여 소리를 재생합니다.
-- **심플한 UI:** 직관적이고 귀여운 디자인의 설정 창을 통해 소리를 켜고 끄거나 볼륨을 조절할 수 있습니다.
+- **Real-time Sound Response:** Plays unique Animal Crossing voices and sound effects corresponding to each key press.
+- **Diverse Voice Profiles:** Choose between Male and Female voices with multiple tone options (Voice 1~4).
+- **Global Key Detection:** Even when the app is in the background, it detects system-wide key inputs to play sounds.
+- **Simple UI:** Intuitive and adorable design allows you to easily toggle sounds and adjust volume.
 
-## 🚀 시작하기
+## 🚀 Getting Started
 
-### 필수 요구 사항
+### Prerequisites
 
-이 프로젝트를 직접 빌드하려면 아래의 도구들이 필요합니다:
+To build this project from source, you will need:
 
-- [Rust](https://www.rust-lang.org/) (Tauri 백엔드)
-- [Node.js](https://nodejs.org/) 또는 [Bun](https://bun.sh/) (프론트엔드)
+- [Rust](https://www.rust-lang.org/) (Tauri Backend)
+- [Node.js](https://nodejs.org/) or [Bun](https://bun.sh/) (Frontend)
 
-### 개발 모드 실행
+### Running in Development
 
 ```bash
-# 의존성 설치
+# Install dependencies
 bun install
 
-# 앱 실행
+# Run the app
 bun tauri dev
 ```
 
-### 빌드하기
+### Building the App
 
 ```bash
 bun tauri build
 ```
 
-## 🎨 디자인 및 에셋
+## 🎨 Design & Assets
 
-- **폰트:** Arial Rounded MT Bold
-- **효과음:** Animal Crossing 시리즈의 사운드 리소스를 영감으로 제작되었습니다.
-- **디자인 컨셉:** 파스텔 톤의 부드럽고 친근한 UI/UX.
+- **Font:** Arial Rounded MT Bold
+- **Sound Effects:** Inspired by the sound resources of the Animal Crossing series.
+- **Design Concept:** Soft and friendly UI/UX with a pastel color palette.
 
-## 📄 라이선스
+## 📄 License
 
-이 프로젝트는 학습 및 개인적 용도로 제작되었습니다. 사운드 및 이미지 에셋의 저작권은 각 권리자에게 있습니다.
+This project was created for educational and personal use. Copyright for sound and image assets belongs to their respective owners.
 
 ---
 
-[GitHub Pages 소개 페이지 보러가기](https://indo.github.io/animalize/) (예시 링크)
+[Visit the Project Homepage](https://indo.github.io/animalize/)
