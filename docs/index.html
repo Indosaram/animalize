@@ -34,8 +34,50 @@
                     <a href="#features" class="btn btn-secondary">Learn More</a>
                 </div>
             </div>
+            
             <div class="hero-image">
-                <img src="assets/images/icon.png" alt="App Preview">
+                <div class="app-preview-wrapper">
+                    <div class="settings-container">
+                        <h2>Settings</h2>
+            
+                        <div class="setting-item">
+                            <label>Volume: <span id="vol-label">50%</span></label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="2"
+                                step="0.1"
+                                value="0.5"
+                                id="vol-slider"
+                            />
+                        </div>
+            
+                        <div class="setting-item">
+                            <label>Sound Mode</label>
+                            <div class="button-group" id="mode-group">
+                                <button class="active" onclick="selectMode(0, this)">All</button>
+                                <button onclick="selectMode(1, this)">Animalese</button>
+                                <button onclick="selectMode(2, this)">SFX</button>
+                            </div>
+                        </div>
+            
+                        <div class="setting-item">
+                            <label>Pitch Shift: <span id="pitch-label">0</span></label>
+                            <input
+                                type="range"
+                                min="-5"
+                                max="5"
+                                step="1"
+                                value="0"
+                                id="pitch-slider"
+                            />
+                        </div>
+            
+                        <p class="hint">
+                            Typing will make sounds even if this window is in the background.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -99,5 +141,29 @@
             <p>&copy; 2026 Animalize. Created with ❤️ by <a href="https://github.com/indo">indo</a></p>
         </div>
     </footer>
+
+    <script>
+        // Simple interactivity for the preview
+        const volSlider = document.getElementById('vol-slider');
+        const volLabel = document.getElementById('vol-label');
+        volSlider.addEventListener('input', (e) => {
+            volLabel.textContent = Math.round(e.target.value * 100) + '%';
+        });
+
+        const pitchSlider = document.getElementById('pitch-slider');
+        const pitchLabel = document.getElementById('pitch-label');
+        pitchSlider.addEventListener('input', (e) => {
+            pitchLabel.textContent = e.target.value;
+        });
+
+        function selectMode(mode, btn) {
+            const group = document.getElementById('mode-group');
+            const buttons = group.getElementsByTagName('button');
+            for (let b of buttons) {
+                b.classList.remove('active');
+            }
+            btn.classList.add('active');
+        }
+    </script>
 </body>
 </html>
