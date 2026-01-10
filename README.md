@@ -63,4 +63,4 @@ This project was created for educational and personal use. Copyright for sound a
 
 ---
 
-[Visit the Project Homepage](https://indo.github.io/animalize/)
+[Visit the Project Homepage](https://Indosaram.github.io/animalize/)
