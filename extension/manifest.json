@@ -16,7 +16,7 @@
       "128": "assets/images/icon128.png"
     }
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "unlimitedStorage"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

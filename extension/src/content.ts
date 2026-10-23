@@ -1,8 +1,9 @@
 import { VoiceEngine, textToSoundKeys } from "@/engine";
 import { chromeStore } from "./chromeStore";
+import { createChromeStorageClipStore } from "./chromeClipStore";
 
 const assetBase = chrome.runtime.getURL("").replace(/\/$/, "");
-const engine = new VoiceEngine({ assetBase });
+const engine = new VoiceEngine({ assetBase, clipStore: createChromeStorageClipStore() });
 const root = document.documentElement;
 
 const publish = () => {

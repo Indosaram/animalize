@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 
-import { VoiceEngine, localStorageStore, normalizeTauriKey } from "@/engine";
+import { VoiceEngine, createIndexedDbClipStore, localStorageStore, normalizeTauriKey } from "@/engine";
 import PermissionBanner from "@/app/PermissionBanner";
 import VoiceStudio from "@/app/VoiceStudio";
 
@@ -13,7 +13,7 @@ declare global {
 const inTauri = () => "__TAURI_INTERNALS__" in window;
 
 export default function App() {
-  const engine = useMemo(() => new VoiceEngine({ assetBase: "" }), []);
+  const engine = useMemo(() => new VoiceEngine({ assetBase: "", clipStore: createIndexedDbClipStore() }), []);
 
   useEffect(() => {
     window.__animalizeEngine = engine;

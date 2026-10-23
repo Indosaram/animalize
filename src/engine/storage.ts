@@ -33,6 +33,16 @@ export function mergeSettings(raw: unknown): Settings {
   if (isObject(raw.clip) && typeof raw.clip.name === "string" && typeof raw.clip.dataUrl === "string") {
     base.clip = { name: raw.clip.name, dataUrl: raw.clip.dataUrl };
   }
+  if (isObject(raw.packs)) {
+    for (const [characterId, list] of Object.entries(raw.packs)) {
+      if (!characterId || !Array.isArray(list)) continue;
+      const clips = list
+        .filter((c): c is { id: string; name: string } => isObject(c) && typeof c.id === "string" && !!c.id && typeof c.name === "string")
+        .slice(0, 12)
+        .map((c) => ({ id: c.id, name: c.name }));
+      if (clips.length) base.packs[characterId] = clips;
+    }
+  }
   return base;
 }
 

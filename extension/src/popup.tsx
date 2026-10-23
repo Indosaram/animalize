@@ -4,9 +4,13 @@ import ReactDOM from "react-dom/client";
 import { VoiceEngine } from "@/engine";
 import VoiceStudio from "@/app/VoiceStudio";
 import { chromeStore } from "./chromeStore";
+import { createChromeStorageClipStore } from "./chromeClipStore";
 import "@/index.css";
 
-const engine = new VoiceEngine({ assetBase: chrome.runtime.getURL("").replace(/\/$/, "") });
+const engine = new VoiceEngine({
+  assetBase: chrome.runtime.getURL("").replace(/\/$/, ""),
+  clipStore: createChromeStorageClipStore(),
+});
 (window as Window & { __animalizeEngine?: VoiceEngine }).__animalizeEngine = engine;
 
 const note = (

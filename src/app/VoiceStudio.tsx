@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
-import { Check, ChevronDown, Upload, Volume2, VolumeX } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
+import { Check, ChevronDown, Play, Trash2, Upload, Volume2, VolumeX } from "lucide-react";
 
 import {
   CHARACTERS,
   DEFAULT_SETTINGS,
+  MAX_PACK_CLIPS,
   VoiceClipError,
   getCharacter,
   type Character,
+  type PackClip,
   type Settings,
   type SettingsStore,
   type SoundMode,
@@ -45,11 +47,13 @@ function CharacterCard({
   character,
   selected,
   compact,
+  packCount,
   onSelect,
 }: {
   character: Character;
   selected: boolean;
   compact: boolean;
+  packCount: number;
   onSelect: () => void;
 }) {
   return (
@@ -69,6 +73,11 @@ function CharacterCard({
       <span className={cn("flex min-w-0 flex-col gap-0.5", compact ? "" : "items-center")}>
         <span className="text-[15px] font-bold leading-tight">{character.name}</span>
         <span className="text-xs leading-snug text-muted-foreground">{character.tagline}</span>
+        {packCount > 0 ? (
+          <Badge data-testid={`pack-badge-${character.id}`} variant="secondary" className={cn("mt-1", compact ? "self-start" : "self-center")}>
+            진짜 소리 {packCount}개
+          </Badge>
+        ) : null}
       </span>
       {selected ? (
         <span
@@ -80,6 +89,143 @@ function CharacterCard({
         </span>
       ) : null}
     </button>
+  );
+}
+
+function PackSection({
+  engine,
+  character,
+  clips,
+  compact,
+  onChange,
+}: {
+  engine: VoiceEngine;
+  character: Character;
+  clips: PackClip[];
+  compact: boolean;
+  onChange: (characterId: string, clips: PackClip[]) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  useEffect(() => setError(null), [character.id]);
+
+  const addFiles = async (files: File[]) => {
+    if (!files.length) return;
+    setError(null);
+    setBusy(true);
+    try {
+      const payload = await Promise.all(files.map(async (f) => ({ data: await f.arrayBuffer(), name: f.name })));
+      const next = await engine.addPackClips(character.id, payload);
+      onChange(character.id, next);
+      const last = next[next.length - 1];
+      if (last) void engine.previewPackClip(character.id, last.id);
+    } catch (err) {
+      setError(err instanceof VoiceClipError ? err.message : "소리 파일을 읽을 수 없어요. 다른 파일을 골라 주세요.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    void addFiles(files);
+  };
+
+  const onDrop = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    void addFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const remove = async (id: string) => {
+    setError(null);
+    onChange(character.id, await engine.removePackClip(character.id, id));
+  };
+
+  const full = clips.length >= MAX_PACK_CLIPS;
+
+  return (
+    <Card data-testid="pack-section" aria-labelledby="pack-title">
+      <CardHeader>
+        <CardTitle id="pack-title">캐릭터 진짜 소리 넣기</CardTitle>
+        <CardDescription className="break-keep leading-relaxed">
+          치이카와 같은 캐릭터의 실제 짧은 소리(하앗, 와아 같은)를 넣으면 타자 칠 때 그 소리가 나요. 소리 파일은 내 컴퓨터에만 저장돼요.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className={cn("grid gap-4", compact ? "" : "md:grid-cols-2")}>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3 rounded-xl bg-secondary px-3 py-2">
+            <CharacterFace face={character.face} size={40} />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-muted-foreground">지금 고른 캐릭터</p>
+              <p data-testid="pack-target" className="truncate font-bold">
+                {character.name}
+              </p>
+            </div>
+            <span className="ml-auto shrink-0 text-sm font-semibold tabular-nums text-muted-foreground">
+              {clips.length}/{MAX_PACK_CLIPS}
+            </span>
+          </div>
+          <label
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!dragging) setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            className={cn(
+              "flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed bg-muted/50 p-4 text-center text-sm font-semibold transition-colors hover:bg-muted focus-within:ring-4 focus-within:ring-ring/30",
+              dragging && "bg-muted",
+              (busy || full) && "pointer-events-none opacity-60",
+            )}
+          >
+            <Upload className="size-6" />
+            <span>{busy ? "읽는 중..." : full ? "소리를 다 채웠어요" : "여기로 소리 파일을 끌어다 놓거나 눌러서 고르세요"}</span>
+            <span className="text-xs font-normal text-muted-foreground">mp3, wav, m4a / 파일당 1MB 이하 / 최대 {MAX_PACK_CLIPS}개</span>
+            <input
+              data-testid="pack-input"
+              type="file"
+              accept="audio/*"
+              multiple
+              disabled={busy || full}
+              className="sr-only"
+              onChange={onInput}
+            />
+          </label>
+          {error ? (
+            <div role="alert" data-testid="pack-error" className="rounded-xl border-2 border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
+              {error}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-2">
+          {clips.length ? (
+            <ul className="flex flex-col gap-2" data-testid="pack-list">
+              {clips.map((c) => (
+                <li key={c.id} className="flex items-center gap-2 rounded-xl border-2 bg-card py-1 pr-1 pl-3">
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold">{c.name}</span>
+                  <Button variant="secondary" className="px-3" onClick={() => void engine.previewPackClip(character.id, c.id)}>
+                    <Play className="size-4" />
+                    미리 듣기
+                  </Button>
+                  <Button variant="ghost" className="px-3 text-destructive hover:text-destructive" onClick={() => void remove(c.id)}>
+                    <Trash2 className="size-4" />
+                    지우기
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="flex min-h-28 items-center justify-center rounded-2xl bg-muted/40 p-4 text-center text-sm break-keep text-muted-foreground">
+              아직 넣은 소리가 없어요. 소리를 넣으면 그 중 하나가 매번 바뀌어 가며 나와요.
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -142,7 +288,12 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
   const update = useCallback(
     (patch: Partial<Settings>) => {
       setSettingsState((prev) => {
-        const next: Settings = { ...prev, ...patch, custom: { ...prev.custom, ...(patch.custom ?? {}) } };
+        const next: Settings = {
+          ...prev,
+          ...patch,
+          custom: { ...prev.custom, ...(patch.custom ?? {}) },
+          packs: patch.packs ?? prev.packs,
+        };
         engine.setSettings(next);
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(() => void store.save(next), 150);
@@ -218,7 +369,7 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
         </h2>
         <div className={cn("grid gap-3", compact ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4")}>
           {FEATURED.map((c) => (
-            <CharacterCard key={c.id} character={c} compact={compact} selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
+            <CharacterCard key={c.id} character={c} compact={compact} packCount={settings.packs[c.id]?.length ?? 0} selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
           ))}
         </div>
         <button
@@ -233,11 +384,24 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
         {showBasic ? (
           <div className={cn("grid gap-3", compact ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4")}>
             {BASIC.map((c) => (
-              <CharacterCard key={c.id} character={c} compact selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
+              <CharacterCard key={c.id} character={c} compact packCount={settings.packs[c.id]?.length ?? 0} selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
             ))}
           </div>
         ) : null}
       </section>
+
+      <PackSection
+        engine={engine}
+        character={current}
+        clips={settings.packs[current.id] ?? []}
+        compact={compact}
+        onChange={(characterId, clips) => {
+          const packs = { ...settings.packs };
+          if (clips.length) packs[characterId] = clips;
+          else delete packs[characterId];
+          update({ packs });
+        }}
+      />
 
       <div className={cn("grid gap-4", compact ? "" : "md:grid-cols-2")}>
         <Card>

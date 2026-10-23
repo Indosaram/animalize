@@ -1,4 +1,5 @@
 import { getCharacter } from "./characters";
+import { base64ToBytes, bytesToBase64, type ClipStore, type PackClipMeta } from "./clipStore";
 import { decomposeHangul, isHangulSyllable, textToSoundKeys } from "./keys";
 import { DEFAULT_SETTINGS, type Character, type Settings } from "./types";
 
@@ -12,6 +13,12 @@ if (typeof globalThis.__animalizePlays !== "number") globalThis.__animalizePlays
 export const CLIP_READ_ERROR = "소리 파일을 읽을 수 없어요. mp3, wav, m4a 파일을 골라 주세요.";
 export const CLIP_TOO_LARGE_ERROR = "파일이 너무 커요 (2MB 이하)";
 export const MAX_CLIP_BYTES = 2 * 1024 * 1024;
+export const PACK_TOO_LARGE_ERROR = "파일이 너무 커요 (1MB 이하)";
+export const PACK_LIMIT_ERROR = "한 캐릭터에 소리는 12개까지 넣을 수 있어요";
+export const PACK_NO_STORE_ERROR = "소리를 저장할 곳이 없어요. 앱을 다시 열어 주세요.";
+export const MAX_PACK_CLIP_BYTES = 1024 * 1024;
+export const MAX_PACK_CLIPS = 12;
+const MAX_PACK_VOICES = 4;
 
 const SYLLABLE_STAGGER_MS = 70;
 const SPEAK_STEP_MS = 75;
@@ -28,6 +35,8 @@ export interface VoiceEngineOptions {
   /** URL prefix: "" for desktop ("/assets/..."), chrome.runtime.getURL("") for the extension */
   assetBase: string;
   audioContext?: () => AudioContext;
+  /** where user-supplied character sound packs are stored */
+  clipStore?: ClipStore;
 }
 
 /** Phoneme map ported from the legacy src/utils/audioSystem.js (Hangul jamo + accented Latin). */
@@ -145,22 +154,6 @@ interface PlayRequest {
   letter?: string;
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
-  let bin = "";
-  const CHUNK = 0x8000;
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
-  }
-  return btoa(bin);
-}
-
-function base64ToBytes(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
 function mimeForName(name: string): string {
   const ext = name.toLowerCase().split(".").pop() ?? "";
   const map: Record<string, string> = {
@@ -184,10 +177,73 @@ export class VoiceEngine {
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private plays = 0;
   private readonly bufferCache = new Map<string, Promise<AudioBuffer>>();
+  private readonly clipStore?: ClipStore;
+  private readonly packBuffers = new Map<string, Promise<AudioBuffer | null>>();
+  private readonly lastPackPick = new Map<string, string>();
+  private readonly packVoices: AudioBufferSourceNode[] = [];
+  private readonly pending = new Set<Promise<void>>();
 
   constructor(opts: VoiceEngineOptions) {
     this.assetRoot = `${opts.assetBase.replace(/\/+$/, "")}/assets/audio/`;
     this.ctxFactory = opts.audioContext;
+    this.clipStore = opts.clipStore;
+  }
+
+  /** Resolves once every playback started so far has been scheduled (or failed). */
+  async settled(): Promise<void> {
+    while (this.pending.size) await Promise.allSettled([...this.pending]);
+  }
+
+  /** Validates and stores user clips for a character; all-or-nothing. Returns the new pack. */
+  async addPackClips(characterId: string, files: { data: ArrayBuffer; name: string }[]): Promise<PackClipMeta[]> {
+    const store = this.clipStore;
+    if (!store) throw new VoiceClipError(PACK_NO_STORE_ERROR);
+    const existing = this.settings.packs[characterId] ?? [];
+    if (existing.length + files.length > MAX_PACK_CLIPS) throw new VoiceClipError(PACK_LIMIT_ERROR);
+    for (const f of files) if (f.data.byteLength > MAX_PACK_CLIP_BYTES) throw new VoiceClipError(PACK_TOO_LARGE_ERROR);
+    const ctx = this.getContext();
+    if (!ctx) throw new VoiceClipError(CLIP_READ_ERROR);
+    const decoded: AudioBuffer[] = [];
+    for (const f of files) {
+      let buffer: AudioBuffer;
+      try {
+        buffer = await ctx.decodeAudioData(f.data.slice(0));
+      } catch (err) {
+        const e = new VoiceClipError(CLIP_READ_ERROR);
+        (e as Error & { cause?: unknown }).cause = err;
+        throw e;
+      }
+      if (!buffer || !(buffer.duration > 0)) throw new VoiceClipError(CLIP_READ_ERROR);
+      decoded.push(buffer);
+    }
+    const added: PackClipMeta[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const meta = await store.put(characterId, files[i].name, files[i].data);
+      this.packBuffers.set(meta.id, Promise.resolve(decoded[i]));
+      added.push(meta);
+    }
+    const next = [...existing, ...added];
+    this.settings = { ...this.settings, packs: { ...this.settings.packs, [characterId]: next } };
+    return next;
+  }
+
+  async removePackClip(characterId: string, id: string): Promise<PackClipMeta[]> {
+    await this.clipStore?.remove(characterId, id);
+    this.packBuffers.delete(id);
+    const packs = { ...this.settings.packs };
+    const next = (packs[characterId] ?? []).filter((c) => c.id !== id);
+    if (next.length) packs[characterId] = next;
+    else delete packs[characterId];
+    this.settings = { ...this.settings, packs };
+    return next;
+  }
+
+  /** Plays one pack clip regardless of the enabled switch. */
+  async previewPackClip(characterId: string, id: string): Promise<void> {
+    this.countPlay();
+    const ctx = this.getContext();
+    if (!ctx) return;
+    await this.track(this.startPackPlayback(ctx, id, getCharacter(characterId, this.settings).speed, 1));
   }
 
   get playCount(): number {
@@ -204,8 +260,13 @@ export class VoiceEngine {
       ...this.settings,
       ...s,
       custom: { ...this.settings.custom, ...(s.custom ?? {}) },
+      packs: s.packs ? { ...s.packs } : this.settings.packs,
     };
     if (prevClip && prevClip !== this.settings.clip?.dataUrl) this.bufferCache.delete(prevClip);
+    if (s.packs) {
+      const live = new Set(Object.values(this.settings.packs).flatMap((p) => p.map((c) => c.id)));
+      for (const id of this.packBuffers.keys()) if (!live.has(id)) this.packBuffers.delete(id);
+    }
   }
 
   handleKey(key: string): void {
@@ -335,14 +396,88 @@ export class VoiceEngine {
     return this.ctx;
   }
 
-  private play(req: PlayRequest): void {
+  private countPlay(): void {
     this.plays += 1;
     globalThis.__animalizePlays = (globalThis.__animalizePlays ?? 0) + 1;
-    const ctx = this.getContext();
-    if (!ctx) return;
-    this.startPlayback(ctx, req).catch((err) => {
+  }
+
+  private track(p: Promise<void>): Promise<void> {
+    const tracked = p.catch((err) => {
       console.error("[animalize] audio playback error:", err);
     });
+    this.pending.add(tracked);
+    void tracked.finally(() => this.pending.delete(tracked));
+    return tracked;
+  }
+
+  /** Random pack clip id for the character, never the same one twice in a row when possible. */
+  private pickPackClip(characterId: string, pack: PackClipMeta[]): string {
+    const last = this.lastPackPick.get(characterId);
+    const pool = pack.length > 1 ? pack.filter((c) => c.id !== last) : pack;
+    const id = pool[Math.floor(Math.random() * pool.length)].id;
+    this.lastPackPick.set(characterId, id);
+    return id;
+  }
+
+  private play(req: PlayRequest): void {
+    this.countPlay();
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const characterId = this.settings.characterId;
+    const pack = req.kind === "voice" ? this.settings.packs[characterId] : undefined;
+    if (pack && pack.length) {
+      const id = this.pickPackClip(characterId, pack);
+      void this.track(this.startPackPlayback(ctx, id, this.character().speed, req.volume >= 0.7 ? 1 : 0.85));
+      return;
+    }
+    void this.track(this.startPlayback(ctx, req));
+  }
+
+  private loadPackBuffer(ctx: AudioContext, id: string): Promise<AudioBuffer | null> {
+    let p = this.packBuffers.get(id);
+    if (!p) {
+      const store = this.clipStore;
+      p = (async () => {
+        const data = store ? await store.get(id) : null;
+        return data ? ctx.decodeAudioData(data.slice(0)) : null;
+      })();
+      this.packBuffers.set(id, p);
+      p.then(
+        (b) => {
+          if (!b) this.packBuffers.delete(id);
+        },
+        () => this.packBuffers.delete(id),
+      );
+    }
+    return p;
+  }
+
+  private async startPackPlayback(ctx: AudioContext, id: string, speed: number, volume: number): Promise<void> {
+    if (ctx.state === "suspended") await ctx.resume();
+    const buffer = await this.loadPackBuffer(ctx, id);
+    if (!buffer) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = volume * this.settings.volume * 0.95;
+    gain.connect(ctx.destination);
+    source.connect(gain);
+    source.playbackRate.value = speed;
+    source.detune.value = Math.random() * 200 - 100;
+    this.packVoices.push(source);
+    source.onended = () => {
+      const i = this.packVoices.indexOf(source);
+      if (i >= 0) this.packVoices.splice(i, 1);
+    };
+    while (this.packVoices.length > MAX_PACK_VOICES) {
+      const oldest = this.packVoices.shift()!;
+      try {
+        oldest.stop();
+      } catch {
+        // already stopped
+      }
+    }
+    source.start();
   }
 
   private loadBuffer(ctx: AudioContext, url: string): Promise<AudioBuffer> {

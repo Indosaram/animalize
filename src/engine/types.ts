@@ -60,6 +60,13 @@ export interface Settings {
   mode: SoundMode;
   custom: CustomVoice;
   clip: VoiceClip | null;
+  /** user-supplied real character clips, keyed by character id (audio bytes live in a ClipStore) */
+  packs: Record<CharacterId, PackClip[]>;
+}
+
+export interface PackClip {
+  id: string;
+  name: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -69,4 +76,5 @@ export const DEFAULT_SETTINGS: Settings = {
   mode: "all",
   custom: { pitch: 0, speed: 1, variation: 0.2, squeak: 0, baseCharacterId: "female-1" },
   clip: null,
+  packs: {},
 };
