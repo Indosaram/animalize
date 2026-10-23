@@ -6,95 +6,94 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target aarch64-apple-darwin
+            rust_targets: aarch64-apple-darwin
+          - platform: macos-latest
+            args: --target x86_64-apple-darwin
+            rust_targets: x86_64-apple-darwin
+          - platform: windows-latest
+            args: ''
+            rust_targets: ''
+          - platform: ubuntu-22.04
+            args: ''
+            rust_targets: ''
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Linux system packages
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev libx11-dev libxtst-dev libxi-dev
+
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
 
       - name: Install dependencies
         run: bun install
 
-      # - name: Import Apple Certificate
-      #   env:
-      #     APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      #     APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      #   run: |
-      #     echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-      #     security create-keychain -p actions build.keychain
-      #     security default-keychain -s build.keychain
-      #     security unlock-keychain -p actions build.keychain
-      #     security set-keychain-settings -lut 21600 build.keychain
-      #     security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions build.keychain
-      #     rm certificate.p12
-
-      - name: Build Tauri App (macOS)
-        # env:
-        #   APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        #   APPLE_ID: ${{ secrets.APPLE_ID }}
-        #   APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-        #   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: bun run tauri build
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+      - name: Build and attach to draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: macos-build
-          path: |
-            src-tauri/target/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/macos/*.app
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Animalize ${{ github.ref_name }}'
+          releaseBody: |
+            ## 다운로드
 
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
+            | 내 컴퓨터 | 받을 파일 |
+            |---|---|
+            | Mac (M1~M4) | `*_aarch64.dmg` |
+            | Mac (Intel) | `*_x64.dmg` |
+            | Windows | `*_x64-setup.exe` |
+            | Linux | `*.AppImage` 또는 `*.deb` |
+            | 크롬 확장 | `animalize-chrome-extension.zip` |
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
+            **Mac에서 "손상되었습니다/열 수 없습니다"가 뜨면**: 서명 전 앱이라 그래요. 터미널에서 `xattr -cr /Applications/animalize.app` 를 한 번 실행한 뒤 다시 여세요. 처음 실행하면 '손쉬운 사용' 권한을 켜 달라는 안내가 나와요.
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build Tauri App (Windows)
-        run: bun run tauri build
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
-
-  release:
-    needs: [build-macos, build-windows]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            macos-build/**/*
-            windows-build/**/*
-          draft: false
+            **크롬 확장 설치**: zip을 풀고 `chrome://extensions` → 오른쪽 위 '개발자 모드' 켜기 → '압축해제된 확장 프로그램을 로드합니다' → 푼 폴더 선택.
+          releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }}
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run test
+      - run: bun run build:ext
+      - name: Zip extension
+        run: cd extension/dist && zip -r ../../animalize-chrome-extension.zip .
+      - name: Attach to draft release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 'Animalize ${{ github.ref_name }}'
+          draft: true
+          files: animalize-chrome-extension.zip
