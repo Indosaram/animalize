@@ -51,6 +51,13 @@ bun tauri dev
 bun tauri build
 ```
 
+## 캐릭터 목소리 / 크롬 확장 (한국어)
+
+- **캐릭터 목소리**: 치이카와 느낌, 하치와레 느낌, 우사기 느낌, 쿠리만쥬 느낌, 기본 동물 목소리(남/여 1~4) 중에서 고를 수 있어요. 높낮이·빠르기·흔들림·삑삑 소리를 직접 조절하거나 내 소리 파일로 목소리를 만들 수도 있어요. 캐릭터 목소리는 분위기를 흉내 낸 합성 효과이며 공식 음성이 아닙니다.
+- **데스크탑 앱**: `bun install` 후 `bun tauri dev`. macOS에서는 다른 앱의 타자를 듣기 위해 '손쉬운 사용' 권한이 필요하며, 앱 안에서 안내해 줘요.
+- **크롬 확장**: `bun run build:ext` 후 `extension/dist` 폴더를 크롬에 로드해요. 자세한 순서는 [extension/README.md](extension/README.md)를 보세요.
+- **테스트**: `bun run test` (목소리 엔진 단위 테스트)
+
 ## 🎨 Design & Assets
 
 - **Font:** Arial Rounded MT Bold
