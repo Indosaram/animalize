@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+extension/dist
+.omo/ulw-loop
 dist-ssr
 *.local
 
