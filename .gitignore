@@ -12,8 +12,6 @@ dist
 extension/dist
 .omo/ulw-loop
 .omo/packsrc
-# local-only character sound packs (copyrighted, never commit)
-public/local-packs
 dist-ssr
 *.local
 
