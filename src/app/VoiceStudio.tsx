@@ -27,6 +27,36 @@ import { cn } from "@/lib/utils";
 
 const PREVIEW_LINE = "안녕 반가워";
 
+/**
+ * Local-only character sound packs (public/local-packs, git-ignored). If index.json exists, packs for
+ * characters that have no clips yet are filled in automatically at first launch. Returns whether anything changed.
+ */
+async function seedLocalPacks(engine: VoiceEngine, s: Settings): Promise<boolean> {
+  const base = typeof chrome !== "undefined" && chrome.runtime?.getURL ? chrome.runtime.getURL("local-packs/") : "/local-packs/";
+  let index: Record<string, string[]>;
+  try {
+    const res = await fetch(base + "index.json");
+    if (!res.ok) return false;
+    index = await res.json();
+  } catch {
+    return false;
+  }
+  let changed = false;
+  for (const [characterId, names] of Object.entries(index)) {
+    if (s.packs[characterId]?.length || !Array.isArray(names) || !names.length) continue;
+    const files = await Promise.all(
+      names.map(async (name) => ({ name, data: await (await fetch(base + `${characterId}/${name}`)).arrayBuffer() })),
+    );
+    try {
+      await engine.addPackClips(characterId, files);
+      changed = true;
+    } catch (err) {
+      console.warn(`[animalize] local pack for ${characterId} skipped`, err);
+    }
+  }
+  return changed;
+}
+
 const MODES: { value: SoundMode; label: string }[] = [
   { value: "all", label: "목소리+효과음" },
   { value: "voice", label: "목소리만" },
@@ -269,11 +299,16 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
 
   useEffect(() => {
     let alive = true;
-    store.load().then((s) => {
+    store.load().then(async (s) => {
       if (!alive) return;
       engine.setSettings(s);
       setSettingsState(s);
       setLoaded(true);
+      const seeded = await seedLocalPacks(engine, s);
+      if (!alive || !seeded) return;
+      const next = engine.getSettings();
+      setSettingsState(next);
+      await store.save(next);
     });
     const unsubscribe = store.subscribe?.((s) => {
       engine.setSettings(s);
