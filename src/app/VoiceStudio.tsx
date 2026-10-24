@@ -28,12 +28,15 @@ import { cn } from "@/lib/utils";
 const PREVIEW_LINE = "안녕 반가워";
 
 /**
- * Local-only character sound packs (public/local-packs, git-ignored). If index.json exists, packs for
- * characters that have no clips yet are filled in automatically at first launch. Returns whether anything changed.
+ * Bundled character sound packs (public/local-packs). Characters with no clips are filled in at launch.
+ * When index.json's `version` changes, clips that were seeded earlier (named `<id>-NN.m4a`) are replaced;
+ * a pack holding any user-uploaded file is left alone. Returns whether anything changed.
  */
+const SEED_VERSION_KEY = "animalize_pack_seed_version";
+
 async function seedLocalPacks(engine: VoiceEngine, s: Settings): Promise<boolean> {
   const base = typeof chrome !== "undefined" && chrome.runtime?.getURL ? chrome.runtime.getURL("local-packs/") : "/local-packs/";
-  let index: Record<string, string[]>;
+  let index: Record<string, unknown>;
   try {
     const res = await fetch(base + "index.json");
     if (!res.ok) return false;
@@ -41,11 +44,21 @@ async function seedLocalPacks(engine: VoiceEngine, s: Settings): Promise<boolean
   } catch {
     return false;
   }
+  const version = String(index.version ?? "1");
+  const upgrade = localStorage.getItem(SEED_VERSION_KEY) !== version;
   let changed = false;
   for (const [characterId, names] of Object.entries(index)) {
-    if (s.packs[characterId]?.length || !Array.isArray(names) || !names.length) continue;
+    if (!Array.isArray(names) || !names.length) continue;
+    let existing = engine.getSettings().packs[characterId] ?? s.packs[characterId] ?? [];
+    const seeded = new RegExp(`^${characterId}-\\d+\\.m4a$`);
+    if (upgrade && existing.length && existing.every((c) => seeded.test(c.name))) {
+      for (const c of existing) await engine.removePackClip(characterId, c.id);
+      existing = [];
+      changed = true;
+    }
+    if (existing.length) continue;
     const files = await Promise.all(
-      names.map(async (name) => ({ name, data: await (await fetch(base + `${characterId}/${name}`)).arrayBuffer() })),
+      (names as string[]).map(async (name) => ({ name, data: await (await fetch(base + `${characterId}/${name}`)).arrayBuffer() })),
     );
     try {
       await engine.addPackClips(characterId, files);
@@ -54,6 +67,7 @@ async function seedLocalPacks(engine: VoiceEngine, s: Settings): Promise<boolean
       console.warn(`[animalize] local pack for ${characterId} skipped`, err);
     }
   }
+  localStorage.setItem(SEED_VERSION_KEY, version);
   return changed;
 }
 
@@ -402,7 +416,7 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
         <h2 id="pick-title" className="text-lg font-bold">
           누구 목소리로 할까요?
         </h2>
-        <div className={cn("grid gap-3", compact ? "grid-cols-1" : "grid-cols-2 md:grid-cols-4")}>
+        <div className={cn("grid gap-3", compact ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3")}>
           {FEATURED.map((c) => (
             <CharacterCard key={c.id} character={c} compact={compact} packCount={settings.packs[c.id]?.length ?? 0} selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
           ))}

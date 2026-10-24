@@ -12,6 +12,8 @@ describe("CHARACTERS", () => {
       "chiikawa",
       "hachiware",
       "usagi",
+      "momonga",
+      "shisa",
       "kurimanju",
       "female-1",
       "female-2",
@@ -36,7 +38,7 @@ describe("CHARACTERS", () => {
   });
 
   test("imitation presets are labelled as such", () => {
-    for (const c of CHARACTERS.slice(0, 4)) expect(c.name).toMatch(/느낌|스타일/);
+    for (const c of CHARACTERS.slice(0, 6)) expect(c.name).toMatch(/느낌|스타일/);
   });
 });
 

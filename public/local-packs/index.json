@@ -1,4 +1,5 @@
 {
+ "version": "2",
  "chiikawa": [
   "chiikawa-01.m4a",
   "chiikawa-02.m4a",
@@ -40,6 +41,34 @@
   "usagi-10.m4a",
   "usagi-11.m4a",
   "usagi-12.m4a"
+ ],
+ "momonga": [
+  "momonga-01.m4a",
+  "momonga-02.m4a",
+  "momonga-03.m4a",
+  "momonga-04.m4a",
+  "momonga-05.m4a",
+  "momonga-06.m4a",
+  "momonga-07.m4a",
+  "momonga-08.m4a",
+  "momonga-09.m4a",
+  "momonga-10.m4a",
+  "momonga-11.m4a",
+  "momonga-12.m4a"
+ ],
+ "shisa": [
+  "shisa-01.m4a",
+  "shisa-02.m4a",
+  "shisa-03.m4a",
+  "shisa-04.m4a",
+  "shisa-05.m4a",
+  "shisa-06.m4a",
+  "shisa-07.m4a",
+  "shisa-08.m4a",
+  "shisa-09.m4a",
+  "shisa-10.m4a",
+  "shisa-11.m4a",
+  "shisa-12.m4a"
  ],
  "kurimanju": [
   "kurimanju-01.m4a",

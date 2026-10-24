@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type FaceKind = "chiikawa" | "hachiware" | "usagi" | "kurimanju" | "male" | "female" | "custom" | "clip";
+export type FaceKind = "chiikawa" | "hachiware" | "usagi" | "momonga" | "shisa" | "kurimanju" | "male" | "female" | "custom" | "clip";
 
 const INK = "#4a3b32";
 
@@ -58,6 +58,36 @@ function Usagi() {
       <Eyes y={54} gap={12} r={3} />
       <ellipse cx={50} cy={70} rx={9} ry={8} fill="#e8736a" stroke={INK} strokeWidth={2} />
       <Cheeks y={62} gap={22} color="#f6a6a0" />
+    </>
+  );
+}
+
+function Momonga() {
+  return (
+    <>
+      <ellipse cx={24} cy={30} rx={11} ry={12} fill="#eef4fc" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={76} cy={30} rx={11} ry={12} fill="#eef4fc" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={50} cy={58} rx={37} ry={31} fill="#eef4fc" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={50} cy={68} rx={22} ry={16} fill="#fff" />
+      <ellipse cx={36} cy={56} rx={6} ry={7.5} fill={INK} />
+      <ellipse cx={64} cy={56} rx={6} ry={7.5} fill={INK} />
+      <circle cx={38} cy={53} r={2.2} fill="#fff" />
+      <circle cx={66} cy={53} r={2.2} fill="#fff" />
+      <Cheeks y={68} gap={24} />
+      <path d="M46 68 q4 3 8 0" fill="none" stroke={INK} strokeWidth={2} strokeLinecap="round" />
+    </>
+  );
+}
+
+function Shisa() {
+  return (
+    <>
+      <path d="M50 14 C70 14 76 24 82 30 C92 34 92 48 86 54 C90 66 82 84 50 86 C18 84 10 66 14 54 C8 48 8 34 18 30 C24 24 30 14 50 14 Z" fill="#e9a35a" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" />
+      <ellipse cx={50} cy={60} rx={28} ry={24} fill="#f7d9a8" stroke={INK} strokeWidth={2} />
+      <Eyes y={56} gap={12} r={3.4} />
+      <ellipse cx={50} cy={64} rx={4} ry={3} fill={INK} />
+      <path d="M44 69 q6 5 12 0" fill="none" stroke={INK} strokeWidth={2} strokeLinecap="round" />
+      <Cheeks y={66} gap={20} color="#f2a08a" />
     </>
   );
 }
@@ -122,6 +152,8 @@ export function CharacterFace({ face, size = 64, className }: { face: FaceKind; 
       {face === "chiikawa" && <Chiikawa />}
       {face === "hachiware" && <Hachiware />}
       {face === "usagi" && <Usagi />}
+      {face === "momonga" && <Momonga />}
+      {face === "shisa" && <Shisa />}
       {face === "kurimanju" && <Kurimanju />}
       {(face === "male" || face === "female") && <Villager tone={face} />}
       {face === "custom" && <CustomIcon />}

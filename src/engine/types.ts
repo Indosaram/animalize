@@ -4,6 +4,8 @@ export type CharacterFace =
   | "chiikawa"
   | "hachiware"
   | "usagi"
+  | "momonga"
+  | "shisa"
   | "kurimanju"
   | "male"
   | "female"

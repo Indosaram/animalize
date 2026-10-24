@@ -2,15 +2,15 @@
 
 **Every keystroke makes a character talk.**
 
-Each time you press a key, you hear a Chiikawa, Hachiware, Usagi, Kurimanju or Animal Crossing villager voice. It's free, and it works on Mac, Windows, Linux and Chrome.
+Each time you press a key, you hear a Chiikawa, Hachiware, Usagi, Momonga, Shisa, Kurimanju or Animal Crossing villager voice. It's free, and it works on Mac, Windows, Linux and Chrome.
 
 **[Go to the homepage and listen](https://indosaram.github.io/animalize/)** · **[Download](https://github.com/Indosaram/animalize/releases/latest)**
 
-![Animalize app screen. There's a big on/off switch at the top, then four character cards: Chiikawa, Hachiware, Usagi and Kurimanju.](docs/assets/shots/app.webp)
+![Animalize app screen. There's a big on/off switch at the top, then six character cards: Chiikawa, Hachiware, Usagi, Momonga, Shisa and Kurimanju.](docs/assets/shots/app.webp)
 
 ## What it does
 
-- **Pick a character:** Chiikawa, Hachiware, Usagi, Kurimanju, plus Animal Crossing villager voices (4 male, 4 female). Click a card and it plays a sample right away.
+- **Pick a character:** Chiikawa, Hachiware, Usagi, Momonga, Shisa, Kurimanju, plus Animal Crossing villager voices (4 male, 4 female). Click a card and it plays a sample right away.
 - **Works anywhere you type:** messengers, documents, the browser any app.
 - **Use your own sounds:** drop short sound files in and they play while you type.
 - **Turn it off in one click:** the big switch at the top silences it immediately.

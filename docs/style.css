@@ -116,7 +116,7 @@ main > section { padding-block: var(--s24); }
 .hero .shot { transform: rotate(1.5deg); }
 .shot--small { max-width: 360px; justify-self: center; }
 
-.voices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s4); }
+.voices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); }
 .voice {
   font: inherit; color: inherit; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--s1);
