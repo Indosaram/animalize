@@ -1,169 +1,276 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animalize - Adorable Typing Sound Effects</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="assets/images/icon.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Animalize - 타자 칠 때마다 캐릭터가 말해요</title>
+  <meta name="description" content="키보드를 칠 때마다 치이카와, 하치와레, 우사기, 쿠리만쥬나 동물의 숲 주민 목소리가 나오는 무료 앱입니다. Mac, Windows, Linux, 크롬에서 쓸 수 있어요.">
+  <meta property="og:title" content="Animalize - 타자 칠 때마다 캐릭터가 말해요">
+  <meta property="og:description" content="키보드를 칠 때마다 귀여운 캐릭터 목소리가 나오는 무료 앱">
+  <meta property="og:image" content="https://indosaram.github.io/animalize/assets/shots/app.webp">
+  <meta name="theme-color" content="#fdf8ef">
+  <link rel="icon" type="image/png" href="assets/images/icon.png">
+  <link rel="preload" href="assets/fonts/Pretendard-Bold.subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <nav>
-                <div class="logo">
-                    <img src="assets/images/icon.png" alt="Animalize Logo">
-                    <span>Animalize</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#usage">How to Use</a></li>
-                    <li><a href="https://github.com/Indosaram/animalize" target="_blank">GitHub</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+  <a class="skip" href="#download">다운로드로 바로 가기</a>
 
+  <header class="top">
+    <div class="wrap top__row">
+      <a class="brand" href="#">
+        <img src="assets/images/icon.png" alt="" width="32" height="32">
+        <span>Animalize</span>
+      </a>
+      <nav class="top__nav" aria-label="페이지 안내">
+        <a href="#listen">들어보기</a>
+        <a href="#download">다운로드</a>
+        <a href="#how">사용법</a>
+        <a href="#faq">자주 묻는 질문</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
     <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Bring Magic to Your Typing 🐾</h1>
-                <p>Animalize transforms your keyboard sounds into cute Animal Crossing-style voices. Turn tedious typing tasks into delightful conversations.</p>
-                <div class="cta-buttons">
-                    <a href="https://github.com/Indosaram/animalize/releases" class="btn btn-primary">Download Now</a>
-                    <a href="#features" class="btn btn-secondary">Learn More</a>
-                </div>
-            </div>
-            
-            <div class="hero-image">
-                <div class="app-preview-wrapper">
-                    <div class="settings-container">
-                        <h2>Settings</h2>
-            
-                        <div class="setting-item">
-                            <label>Volume: <span id="vol-label">50%</span></label>
-                            <input
-                                type="range"
-                                min="0"
-                                max="2"
-                                step="0.1"
-                                value="0.5"
-                                id="vol-slider"
-                            />
-                        </div>
-            
-                        <div class="setting-item">
-                            <label>Sound Mode</label>
-                            <div class="button-group" id="mode-group">
-                                <button class="active" onclick="selectMode(0, this)">All</button>
-                                <button onclick="selectMode(1, this)">Animalese</button>
-                                <button onclick="selectMode(2, this)">SFX</button>
-                            </div>
-                        </div>
-            
-                        <div class="setting-item">
-                            <label>Pitch Shift: <span id="pitch-label">0</span></label>
-                            <input
-                                type="range"
-                                min="-5"
-                                max="5"
-                                step="1"
-                                value="0"
-                                id="pitch-slider"
-                            />
-                        </div>
-            
-                        <p class="hint">
-                            Typing will make sounds even if this wIndosaramw is in the background.
-                        </p>
-                    </div>
-                </div>
-            </div>
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="tag">무료 · Mac · Windows · Linux · 크롬</p>
+          <h1>타자 칠 때마다<br>캐릭터가 말해요</h1>
+          <p class="lead">키보드를 누를 때마다 치이카와, 하치와레, 우사기, 쿠리만쥬, 동물의 숲 주민 목소리가 나와요. 설치하고 캐릭터만 고르면 끝이에요.</p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" id="hero-download" href="#download">무료로 받기</a>
+            <a class="btn btn--soft" href="#listen">먼저 들어보기</a>
+          </div>
+          <p class="hero__note" id="hero-os-note"></p>
         </div>
+        <figure class="shot">
+          <img src="assets/shots/app.webp" width="1600" height="975" alt="Animalize 앱 화면. 위쪽에 '타자 소리 켜기' 스위치가 있고, 치이카와 느낌, 하치와레 느낌, 우사기 느낌, 쿠리만쥬 느낌 네 개의 캐릭터 카드가 있어요." fetchpriority="high">
+        </figure>
+      </div>
     </section>
 
-    <section id="features" class="features">
-        <div class="container">
-            <h2>Key Features</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔊</div>
-                    <h3>Real-time Response</h3>
-                    <p>Detects global keyboard input and immediately plays Animal Crossing sound effects.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👤</div>
-                    <h3>Diverse Voices</h3>
-                    <p>Select between male and female voices with various tone profiles.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚙️</div>
-                    <h3>Easy Setup</h3>
-                    <p>Handily change volume, select voices, and more through an intuitive UI.</p>
-                </div>
-            </div>
+    <section class="band" id="listen" aria-labelledby="listen-title">
+      <div class="wrap">
+        <h2 id="listen-title">눌러서 들어보세요</h2>
+        <p class="section-lead">카드를 누르면 그 캐릭터 소리가 나와요. 앱에서는 키를 칠 때마다 이런 소리가 하나씩 바뀌어 가며 나와요.</p>
+        <div class="voices">
+          <button class="voice" type="button" data-voice="chiikawa">
+            <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="27" cy="26" r="10" fill="#fff" stroke="#4a3b32" stroke-width="2.5"/><circle cx="73" cy="26" r="10" fill="#fff" stroke="#4a3b32" stroke-width="2.5"/><ellipse cx="50" cy="56" rx="36" ry="33" fill="#fff" stroke="#4a3b32" stroke-width="2.5"/><g fill="#4a3b32"><circle cx="37" cy="54" r="3.6"/><circle cx="63" cy="54" r="3.6"/></g><g fill="#f8b4c0" opacity=".85"><ellipse cx="28" cy="62" rx="6" ry="3.6"/><ellipse cx="72" cy="62" rx="6" ry="3.6"/></g><path d="M46 62 q4 4 8 0" fill="none" stroke="#4a3b32" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="voice__name">치이카와</span>
+            <span class="voice__desc">에헤헤, 우후후 하고 웃어요</span>
+            <span class="voice__state">들어보기</span>
+          </button>
+          <button class="voice" type="button" data-voice="hachiware">
+            <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 40 L24 12 L42 28 Z" fill="#fff" stroke="#4a3b32" stroke-width="2.5" stroke-linejoin="round"/><path d="M80 40 L76 12 L58 28 Z" fill="#fff" stroke="#4a3b32" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="50" cy="57" rx="36" ry="32" fill="#fff" stroke="#4a3b32" stroke-width="2.5"/><path d="M16 52 Q18 26 50 25 Q82 26 84 52 Q70 38 50 50 Q30 38 16 52 Z" fill="#7d9cc4"/><g fill="#4a3b32"><circle cx="37" cy="58" r="3.4"/><circle cx="63" cy="58" r="3.4"/></g><g fill="#f8b4c0" opacity=".85"><ellipse cx="28" cy="66" rx="6" ry="3.6"/><ellipse cx="72" cy="66" rx="6" ry="3.6"/></g><path d="M44 65 q6 6 12 0" fill="none" stroke="#4a3b32" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="voice__name">하치와레</span>
+            <span class="voice__desc">"~라는 거야?" 하고 말해요</span>
+            <span class="voice__state">들어보기</span>
+          </button>
+          <button class="voice" type="button" data-voice="usagi">
+            <svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="36" cy="22" rx="8" ry="20" fill="#fbe27a" stroke="#4a3b32" stroke-width="2.5"/><ellipse cx="64" cy="22" rx="8" ry="20" fill="#fbe27a" stroke="#4a3b32" stroke-width="2.5"/><ellipse cx="50" cy="60" rx="34" ry="30" fill="#fbe27a" stroke="#4a3b32" stroke-width="2.5"/><g fill="#4a3b32"><circle cx="38" cy="54" r="3"/><circle cx="62" cy="54" r="3"/></g><ellipse cx="50" cy="70" rx="9" ry="8" fill="#e8736a" stroke="#4a3b32" stroke-width="2"/><g fill="#f6a6a0" opacity=".85"><ellipse cx="28" cy="62" rx="6" ry="3.6"/><ellipse cx="72" cy="62" rx="6" ry="3.6"/></g></svg>
+            <span class="voice__name">우사기</span>
+            <span class="voice__desc">"우라! 야하!" 하고 외쳐요</span>
+            <span class="voice__state">들어보기</span>
+          </button>
+          <button class="voice" type="button" data-voice="kurimanju">
+            <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 18 C78 18 88 48 86 64 C84 82 68 90 50 90 C32 90 16 82 14 64 C12 48 22 18 50 18 Z" fill="#c98a55" stroke="#4a3b32" stroke-width="2.5"/><path d="M22 50 C34 44 66 44 78 50" fill="none" stroke="#a8693a" stroke-width="3" stroke-linecap="round"/><path d="M34 60 q4 -3 8 0 M58 60 q4 -3 8 0" fill="none" stroke="#4a3b32" stroke-width="2.5" stroke-linecap="round"/><path d="M44 72 q6 4 12 0" fill="none" stroke="#4a3b32" stroke-width="2" stroke-linecap="round"/><g fill="#e6a07c" opacity=".85"><ellipse cx="28" cy="68" rx="6" ry="3.6"/><ellipse cx="72" cy="68" rx="6" ry="3.6"/></g></svg>
+            <span class="voice__name">쿠리만쥬</span>
+            <span class="voice__desc">"하아~" 하고 느긋하게</span>
+            <span class="voice__state">들어보기</span>
+          </button>
         </div>
+        <p class="small">이 밖에 동물의 숲 주민 목소리(남자 4가지, 여자 4가지)도 있고, 높낮이와 빠르기를 바꿔 나만의 목소리도 만들 수 있어요.</p>
+      </div>
     </section>
 
-    <section id="usage" class="usage-section">
-        <div class="container">
-            <h2>How to Use</h2>
-            <div class="usage-steps">
-                <div class="step">
-                    <span class="step-number">1</span>
-                    <h3>Launch</h3>
-                    <p>Run the Animalize app. It works quietly in the background.</p>
-                </div>
-                <div class="step">
-                    <span class="step-number">2</span>
-                    <h3>Type</h3>
-                    <p>Start typing anywhere! Your keyboard will now sing in Animalese.</p>
-                </div>
-                <div class="step">
-                    <span class="step-number">3</span>
-                    <h3>Customize</h3>
-                    <p>Open the settings from the tray icon to adjust volume, pitch, and voices.</p>
-                </div>
-            </div>
+    <section id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <h2 id="download-title">내 컴퓨터에 맞는 파일을 받으세요</h2>
+        <p class="section-lead">전부 무료예요. 무엇을 받아야 할지 모르겠으면 <strong>"내 컴퓨터"</strong> 표시가 붙은 것을 받으면 돼요.</p>
+        <div class="downloads">
+          <a class="dl" data-os="mac-arm" href="https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_aarch64.dmg">
+            <span class="dl__badge">내 컴퓨터</span>
+            <span class="dl__title">Mac (M1 ~ M4)</span>
+            <span class="dl__desc">2020년 말 이후에 산 대부분의 Mac</span>
+            <span class="dl__file">Animalize_0.2.0_aarch64.dmg</span>
+          </a>
+          <a class="dl" data-os="mac-intel" href="https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_x64.dmg">
+            <span class="dl__badge">내 컴퓨터</span>
+            <span class="dl__title">Mac (Intel)</span>
+            <span class="dl__desc">2020년 이전의 Mac</span>
+            <span class="dl__file">Animalize_0.2.0_x64.dmg</span>
+          </a>
+          <a class="dl" data-os="windows" href="https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_x64-setup.exe">
+            <span class="dl__badge">내 컴퓨터</span>
+            <span class="dl__title">Windows</span>
+            <span class="dl__desc">Windows 10, 11</span>
+            <span class="dl__file">Animalize_0.2.0_x64-setup.exe</span>
+          </a>
+          <a class="dl" data-os="chrome" href="https://github.com/Indosaram/animalize/releases/latest/download/animalize-chrome-extension.zip">
+            <span class="dl__badge">내 컴퓨터</span>
+            <span class="dl__title">크롬 확장</span>
+            <span class="dl__desc">설치 없이 웹페이지에서만 쓰고 싶을 때</span>
+            <span class="dl__file">animalize-chrome-extension.zip</span>
+          </a>
         </div>
+        <details class="mac-check">
+          <summary>내 Mac이 M1~M4인지 Intel인지 모르겠어요</summary>
+          <p>화면 왼쪽 위 사과 모양을 누르고 <strong>이 Mac에 관하여</strong>를 누르세요. <strong>칩</strong> 줄에 "Apple M1"처럼 M이 보이면 M1~M4용을, <strong>프로세서</strong> 줄에 "Intel"이 보이면 Intel용을 받으면 돼요.</p>
+        </details>
+        <p class="small">Linux는 <a href="https://github.com/Indosaram/animalize/releases/latest">다운로드 페이지</a>에서 <code>.deb</code>, <code>.AppImage</code>, <code>.rpm</code> 중 하나를 받으세요.</p>
+      </div>
     </section>
 
-    <section class="download-section">
-        <div class="container">
-            <h2>Ready to start?</h2>
-            <p>Install Animalize now and start your delightful typing journey.</p>
-            <a href="https://github.com/Indosaram/animalize/releases" class="btn btn-large">Download for Desktop</a>
+    <section class="band" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <h2 id="how-title">설치하는 방법</h2>
+        <div class="tabs" role="tablist" aria-label="운영체제 고르기">
+          <button type="button" role="tab" id="tab-mac" aria-controls="panel-mac" aria-selected="true">Mac</button>
+          <button type="button" role="tab" id="tab-win" aria-controls="panel-win" aria-selected="false" tabindex="-1">Windows</button>
+          <button type="button" role="tab" id="tab-chrome" aria-controls="panel-chrome" aria-selected="false" tabindex="-1">크롬 확장</button>
         </div>
+
+        <div class="panel" role="tabpanel" id="panel-mac" aria-labelledby="tab-mac">
+          <ol class="steps">
+            <li><h3>받은 파일 열기</h3><p>다운로드 폴더에서 <code>Animalize_…dmg</code> 파일을 두 번 누르세요.</p></li>
+            <li><h3>응용 프로그램으로 옮기기</h3><p>창이 뜨면 Animalize 아이콘을 옆의 <strong>Applications</strong> 폴더로 끌어다 놓으세요.</p></li>
+            <li><h3>앱 열기</h3><p>Launchpad나 응용 프로그램 폴더에서 Animalize를 여세요. 애플 인증을 받은 앱이라 바로 열려요.</p></li>
+            <li>
+              <h3>'손쉬운 사용' 켜기 (한 번만)</h3>
+              <p>다른 앱에서 타자 칠 때도 소리가 나려면 권한이 필요해요. 앱 위쪽에 안내가 뜨면 <strong>설정 열기</strong>를 누르고, 목록에서 <strong>Animalize</strong> 스위치를 켜 주세요.</p>
+              <p class="tip">권한을 켜지 않아도 앱 안의 "여기에 타자를 쳐 보세요" 칸에서는 소리가 나요.</p>
+            </li>
+          </ol>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-win" aria-labelledby="tab-win" hidden>
+          <ol class="steps">
+            <li><h3>받은 파일 실행</h3><p>다운로드 폴더에서 <code>Animalize_…-setup.exe</code> 파일을 두 번 누르세요.</p></li>
+            <li>
+              <h3>파란 경고창이 뜨면</h3>
+              <p>"Windows의 PC 보호" 창이 뜨면 <strong>추가 정보</strong>를 누른 뒤 <strong>실행</strong>을 누르세요.</p>
+              <p class="tip">개인이 만든 무료 앱이라 마이크로소프트 유료 인증서가 없어서 뜨는 창이에요. 바이러스가 아니에요.</p>
+            </li>
+            <li><h3>설치 마치기</h3><p>안내대로 <strong>다음</strong>을 누르면 설치가 끝나고, 바탕화면에 Animalize가 생겨요.</p></li>
+          </ol>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-chrome" aria-labelledby="tab-chrome" hidden>
+          <ol class="steps">
+            <li><h3>압축 풀기</h3><p>받은 <code>animalize-chrome-extension.zip</code>을 두 번 눌러 폴더로 풀어 주세요.</p></li>
+            <li><h3>확장 프로그램 페이지 열기</h3><p>크롬 주소창에 <code>chrome://extensions</code> 를 입력하고 엔터를 누르세요.</p></li>
+            <li><h3>개발자 모드 켜기</h3><p>오른쪽 위의 <strong>개발자 모드</strong> 스위치를 켜세요.</p></li>
+            <li><h3>폴더 고르기</h3><p><strong>압축해제된 확장 프로그램을 로드합니다</strong>를 누르고, 1번에서 푼 폴더를 고르세요.</p></li>
+            <li>
+              <h3>고정해 두기</h3>
+              <p>주소창 오른쪽 퍼즐 모양을 누르고 Animalize 옆 핀을 누르면 아이콘이 늘 보여요. 아이콘을 누르면 캐릭터를 고를 수 있어요.</p>
+              <p class="tip">비밀번호 칸에서는 소리가 나지 않아요.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
     </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Animalize. Created with ❤️ by <a href="https://github.com/Indosaram">Indosaram</a></p>
+    <section aria-labelledby="use-title">
+      <div class="wrap use">
+        <div>
+          <h2 id="use-title">쓰는 법은 세 가지가 전부예요</h2>
+          <ol class="steps steps--plain">
+            <li><h3>캐릭터 고르기</h3><p>카드를 누르면 그 목소리로 바뀌고, 바로 한 번 들려줘요.</p></li>
+            <li><h3>소리 크기 맞추기</h3><p>소리 크기 막대를 옮기세요. "목소리만", "효과음만"으로 바꿀 수도 있어요.</p></li>
+            <li><h3>끄고 싶을 때</h3><p>맨 위 큰 스위치를 끄면 바로 조용해져요. Mac은 메뉴 막대, Windows는 작업 표시줄의 Animalize 아이콘에서도 끌 수 있어요.</p></li>
+          </ol>
         </div>
-    </footer>
+        <figure class="shot shot--small">
+          <img src="assets/shots/extension.webp" width="420" height="700" alt="크롬 확장 팝업 화면. 캐릭터 목록마다 '진짜 소리 12개' 표시가 있어요." loading="lazy">
+        </figure>
+      </div>
+    </section>
 
-    <script>
-        // Simple interactivity for the preview
-        const volSlider = document.getElementById('vol-slider');
-        const volLabel = document.getElementById('vol-label');
-        volSlider.addEventListener('input', (e) => {
-            volLabel.textContent = Math.round(e.target.value * 100) + '%';
+    <section class="band" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq">
+        <h2 id="faq-title">자주 묻는 질문</h2>
+        <details><summary>다른 앱에서 타자를 쳐도 소리가 안 나요 (Mac)</summary><p>'손쉬운 사용' 권한이 꺼져 있을 때 그래요. 시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용에서 Animalize를 켜 주세요. 이미 켜져 있다면 한 번 껐다 켜고 앱을 다시 열어 보세요.</p></details>
+        <details><summary>소리가 너무 커요 / 너무 작아요</summary><p>앱의 소리 크기 막대로 맞추세요. 컴퓨터 전체 음량도 함께 영향을 줘요.</p></details>
+        <details><summary>입력하는 내용이 어디로 전송되나요?</summary><p>아니요. 어떤 키를 눌렀는지는 소리를 고르는 데만 쓰이고, 저장하거나 인터넷으로 보내지 않아요. 크롬 확장은 비밀번호 칸에서 아예 소리를 내지 않아요.</p></details>
+        <details><summary>내가 가진 소리로 바꿀 수 있나요?</summary><p>네. 캐릭터를 고른 뒤 "캐릭터 진짜 소리 넣기" 칸에 짧은 소리 파일(mp3, wav, m4a / 파일당 1MB 이하)을 끌어다 놓으면, 타자 칠 때 그 소리가 나요. 캐릭터마다 12개까지 넣을 수 있어요.</p></details>
+        <details><summary>공식 앱인가요?</summary><p>아니요. 팬이 만든 비영리 무료 앱이에요. 치이카와 캐릭터와 목소리의 권리는 원작자와 제작사에 있어요.</p></details>
+        <details><summary>지우고 싶어요</summary><p>Mac은 응용 프로그램 폴더에서 Animalize를 휴지통으로 옮기면 돼요. Windows는 설정 → 앱에서 Animalize를 제거하세요. 크롬은 <code>chrome://extensions</code>에서 삭제를 누르세요.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot__row">
+      <p>Animalize · 팬이 만든 무료 앱 · <a href="https://github.com/Indosaram/animalize">GitHub</a></p>
+      <p class="small">캐릭터와 목소리의 권리는 각 권리자에게 있어요.</p>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const players = {};
+      const counts = { chiikawa: 0, hachiware: 0, usagi: 0, kurimanju: 0 };
+      const clips = ["01", "03", "05", "07", "09", "11"];
+      document.querySelectorAll(".voice").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.voice;
+          const n = clips[counts[id]++ % clips.length];
+          players[id]?.pause();
+          const a = new Audio(`assets/sounds/${id}/${id}-${n}.m4a`);
+          players[id] = a;
+          const state = btn.querySelector(".voice__state");
+          btn.classList.add("is-playing");
+          state.textContent = "재생 중";
+          const done = () => { btn.classList.remove("is-playing"); state.textContent = "한 번 더"; };
+          a.addEventListener("ended", done);
+          a.addEventListener("error", done);
+          a.play().catch(done);
         });
+      });
 
-        const pitchSlider = document.getElementById('pitch-slider');
-        const pitchLabel = document.getElementById('pitch-label');
-        pitchSlider.addEventListener('input', (e) => {
-            pitchLabel.textContent = e.target.value;
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      function selectTab(id) {
+        tabs.forEach((t) => {
+          const on = t.id === id;
+          t.setAttribute("aria-selected", String(on));
+          t.tabIndex = on ? 0 : -1;
+          document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
         });
+      }
 
-        function selectMode(mode, btn) {
-            const group = document.getElementById('mode-group');
-            const buttons = group.getElementsByTagName('button');
-            for (let b of buttons) {
-                b.classList.remove('active');
-            }
-            btn.classList.add('active');
-        }
-    </script>
+      const ua = navigator.userAgent;
+      const isMac = /Macintosh|Mac OS X/.test(ua);
+      const isWin = /Windows/.test(ua);
+      let os = null;
+      if (isWin) os = "windows";
+      else if (isMac) {
+        const gl = document.createElement("canvas").getContext("webgl");
+        const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+        const renderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "";
+        os = /Intel/i.test(renderer) ? "mac-intel" : "mac-arm";
+      }
+      if (os) {
+        const card = document.querySelector(`.dl[data-os="${os}"]`);
+        card.classList.add("is-mine");
+        const hero = document.getElementById("hero-download");
+        hero.href = card.href;
+        hero.textContent = `${card.querySelector(".dl__title").textContent}용 무료로 받기`;
+        document.getElementById("hero-os-note").textContent = "다른 컴퓨터용은 아래 다운로드에서 고를 수 있어요.";
+        if (isWin) selectTab("tab-win");
+      }
+
+      tabs.forEach((t, i) => {
+        t.addEventListener("click", () => selectTab(t.id));
+        t.addEventListener("keydown", (e) => {
+          if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+          const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+          selectTab(next.id);
+          next.focus();
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -1,74 +1,118 @@
-# 🐾 Animalize
+# Animalize
 
-**Animalize** is a cute desktop application that detects your keyboard input and plays Animal Crossing style sound effects (Animalese) in real-time. Add a touch of magic to your daily typing!
+**Every keystroke makes a character talk.**
 
-## ✨ Key Features
+Each time you press a key, you hear a Chiikawa, Hachiware, Usagi, Kurimanju or Animal Crossing villager voice. It's free, and it works on Mac, Windows, Linux and Chrome.
 
-- **Real-time Sound Response:** Plays unique Animal Crossing voices and sound effects corresponding to each key press.
-- **Diverse Voice Profiles:** Choose between Male and Female voices with multiple tone options (Voice 1~4).
-- **Global Key Detection:** Even when the app is in the background, it detects system-wide key inputs to play sounds.
-- **Simple UI:** Intuitive and adorable design allows you to easily toggle sounds and adjust volume.
+**[Go to the homepage and listen](https://indosaram.github.io/animalize/)** · **[Download](https://github.com/Indosaram/animalize/releases/latest)**
 
-## 📸 Screenshots
+![Animalize app screen. There's a big on/off switch at the top, then four character cards: Chiikawa, Hachiware, Usagi and Kurimanju.](docs/assets/shots/app.webp)
 
-*(Add your screenshots here)*
+## What it does
 
-## 📖 How to Use
+- **Pick a character:** Chiikawa, Hachiware, Usagi, Kurimanju, plus Animal Crossing villager voices (4 male, 4 female). Click a card and it plays a sample right away.
+- **Works anywhere you type:** messengers, documents, the browser – any app.
+- **Use your own sounds:** drop short sound files in and they play while you type.
+- **Turn it off in one click:** the big switch at the top silences it immediately.
+- **Your typing stays on your computer:** keystrokes are only used to pick a sound. Nothing is saved or sent over the internet.
 
-1.  **Launch the App:** Open Animalize. The app will start running in the background.
-2.  **Start Typing:** Open any application (Notepad, Browser, Slack, etc.) and start typing. You will hear the cute Animalese sounds!
-3.  **Adjust Settings:**
-    *   Click the **Tray Icon** (in the taskbar/menu bar) and select **Show** to open the settings window.
-    *   **Volume:** Use the slider to adjust the sound level.
-    *   **Sound Mode:**
-        *   **All:** Plays both voices and special sound effects.
-        *   **Animalese:** Plays only the voices.
-        *   **SFX:** Plays only sound effects (like typing noises).
-    *   **Voice & Pitch:** Select your preferred voice type (Male/Female) and adjust the pitch slider to customize the tone.
+## 1. Download
 
-## 🚀 Getting Started
+Download the file that matches your computer.
 
-### Prerequisites
+| My computer | File to download |
+|---|---|
+| Mac (M1~M4, most Macs bought after late 2020) | [Animalize_0.2.0_aarch64.dmg](https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_aarch64.dmg) |
+| Mac (Intel, Macs from before 2020) | [Animalize_0.2.0_x64.dmg](https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_x64.dmg) |
+| Windows 10, 11 | [Animalize_0.2.0_x64-setup.exe](https://github.com/Indosaram/animalize/releases/latest/download/Animalize_0.2.0_x64-setup.exe) |
+| Chrome only (no install) | [animalize-chrome-extension.zip](https://github.com/Indosaram/animalize/releases/latest/download/animalize-chrome-extension.zip) |
+| Linux | Pick `.deb`, `.AppImage` or `.rpm` on the [download page](https://github.com/Indosaram/animalize/releases/latest) |
 
-To build this project from source, you will need:
+> **Not sure if your Mac is M1~M4 or Intel?** Click the Apple menu in the top-left corner of the screen and choose **About This Mac**. If the **Chip** line says something like "Apple M1", download the M1~M4 version. If the **Processor** line says "Intel", download the Intel version.
 
-- [Rust](https://www.rust-lang.org/) (Tauri Backend)
-- [Node.js](https://nodejs.org/) or [Bun](https://bun.sh/) (Frontend)
+## 2. Install
 
-### Running in Development
+### Mac
 
-```bash
-# Install dependencies
-bun install
+1. In your Downloads folder, double-click the `Animalize_…dmg` file.
+2. When the window opens, drag the Animalize icon into the **Applications** folder next to it.
+3. Open Animalize from Launchpad or the Applications folder. The app is certified by Apple, so it opens right away.
+4. **Turn on Accessibility (one time only):** to hear sounds when you type in other apps, Animalize needs permission. When the notice appears at the top of the app, click **Open Settings**, then turn on the **Animalize** switch in the list.
+   - Even without the permission, sound plays in the app's "Type here to try it" box.
 
-# Run the app
-bun tauri dev
-```
+### Windows
 
-### Building the App
+1. In your Downloads folder, double-click the `Animalize_…-setup.exe` file.
+2. If a blue "Windows protected your PC" window appears, click **More info**, then **Run anyway**.
+   - This window appears because this is a free app made by an individual, without a paid Microsoft certificate. It isn't a virus.
+3. Click **Next** as prompted to finish installing. Animalize will appear on your desktop.
 
-```bash
-bun tauri build
-```
+### Chrome extension
 
-## 캐릭터 목소리 / 크롬 확장 (한국어)
+1. Double-click the downloaded `animalize-chrome-extension.zip` to unzip it into a folder.
+2. Type `chrome://extensions` into Chrome's address bar and press Enter.
+3. Turn on the **Developer mode** switch in the top-right corner.
+4. Click **Load unpacked** and choose the folder you unzipped in step 1.
+5. Click the puzzle icon to the right of the address bar, then the pin next to Animalize, so the icon always shows. Click the icon to pick a character.
+   - No sound plays in password fields.
 
-- **캐릭터 목소리**: 치이카와 느낌, 하치와레 느낌, 우사기 느낌, 쿠리만쥬 느낌, 기본 동물 목소리(남/여 1~4) 중에서 고를 수 있어요. 높낮이·빠르기·흔들림·삑삑 소리를 직접 조절하거나 내 소리 파일로 목소리를 만들 수도 있어요. 캐릭터 목소리는 분위기를 흉내 낸 합성 효과이며 공식 음성이 아닙니다.
-- **데스크탑 앱**: `bun install` 후 `bun tauri dev`. macOS에서는 다른 앱의 타자를 듣기 위해 '손쉬운 사용' 권한이 필요하며, 앱 안에서 안내해 줘요.
-- **크롬 확장**: `bun run build:ext` 후 `extension/dist` 폴더를 크롬에 로드해요. 자세한 순서는 [extension/README.md](extension/README.md)를 보세요.
-- **캐릭터 진짜 소리 넣기**: 캐릭터를 고른 뒤 "캐릭터 진짜 소리 넣기" 칸에 짧은 소리 파일(하앗, 와아 같은 것, mp3·wav·m4a / 파일당 1MB 이하 / 캐릭터마다 12개까지)을 끌어다 놓으면, 타자를 칠 때 그 소리 중 하나가 매번 바뀌어 가며 나와요. 소리 파일은 사용자가 직접 준비해야 하며, 내 컴퓨터에만 저장돼요. 저작권이 있는 소리를 공유하거나 배포하면 안 돼요. 이 저장소에는 캐릭터 실제 음성이 들어 있지 않아요.
-- **테스트**: `bun run test` (목소리 엔진 단위 테스트)
+## 3. How to use it
 
-## 🎨 Design & Assets
+1. **Pick a character:** click a card to switch to that voice. It plays once so you can hear it.
+2. **Set the volume:** drag the volume slider. You can also switch to "Voice only" or "Sound effects only".
+3. **When you want quiet:** turn off the big switch at the top. You can also turn it off from the Animalize icon in the menu bar (Mac) or the taskbar (Windows).
 
-- **Font:** Arial Rounded MT Bold
-- **Sound Effects:** Inspired by the sound resources of the Animal Crossing series.
-- **Design Concept:** Soft and friendly UI/UX with a pastel color palette.
+## Frequently asked questions
 
-## 📄 License
+<details>
+<summary>No sound when I type in other apps (Mac)</summary>
 
-This project was created for educational and personal use. Copyright for sound and image assets belongs to their respective owners.
+This happens when the Accessibility permission is off. Go to System Settings → Privacy & Security → Accessibility and turn on Animalize. If it's already on, turn it off and on again, then reopen the app.
+</details>
+
+<details>
+<summary>Can I use my own sounds?</summary>
+
+Yes. Pick a character, then drop short sound files (mp3, wav or m4a, up to 1 MB each) into the "Add real character sounds" box. Those sounds will play as you type. You can add up to 12 per character.
+</details>
+
+<details>
+<summary>Is what I type sent anywhere?</summary>
+
+No. Keystrokes are only used to pick a sound. They aren't saved or sent over the internet.
+</details>
+
+<details>
+<summary>How do I uninstall it?</summary>
+
+On Mac, move Animalize from the Applications folder to the Trash. On Windows, go to Settings → Apps and uninstall Animalize. In Chrome, click Remove for it on `chrome://extensions`.
+</details>
+
+<details>
+<summary>Is this an official app?</summary>
+
+No. It's a free, non-commercial app made by a fan. The rights to the characters and their voices belong to their creators and the production companies.
+</details>
 
 ---
 
-[Visit the Project Homepage](https://Indosaram.github.io/animalize/)
+## For developers
+
+This is a Tauri 2 (Rust) + React + Vite project. The desktop app and the Chrome extension share the voice engine in `src/engine`.
+
+```bash
+bun install
+bun tauri dev        # run the desktop app
+bun run test         # voice engine tests
+bun run build:ext    # build the Chrome extension -> extension/dist
+```
+
+- Character sound files: `public/local-packs/<character>/*.m4a` (listed in `index.json`). They are loaded automatically on first launch.
+- Releases: pushing a `v*` tag makes GitHub Actions build for Mac (signed and notarized), Windows, Linux and the Chrome extension, and upload them as a draft release.
+- Design tokens: [DESIGN.md](DESIGN.md)
+
+## License and credits
+
+- The app is a non-commercial fan project made for learning and personal use.
+- The rights to the character voices and images belong to their respective owners.
+- The Korean font is [Pretendard](https://github.com/orioncactus/pretendard) (SIL Open Font License 1.1).
