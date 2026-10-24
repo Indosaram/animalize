@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 
 import numpy as np
 
@@ -68,6 +69,19 @@ def shape(y):
     return y
 
 
+def remove_background(sprite):
+    """Second vocal-separation pass over the finished sprite: keeps only the voice stem."""
+    with tempfile.TemporaryDirectory() as tmp:
+        wav = os.path.join(tmp, "blips.wav")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", sprite, "-ar", str(SR), "-ac", "2", wav], check=True)
+        subprocess.run(
+            ["demucs", "--two-stems=vocals", "-n", "htdemucs", "-o", tmp, wav],
+            capture_output=True,
+            check=True,
+        )
+        return load(os.path.join(tmp, "htdemucs", "blips", "vocals.wav"))
+
+
 def build(character):
     src = os.path.join(SYLLABLES, character)
     bank = json.load(open(os.path.join(src, "bank.json")))
@@ -107,10 +121,24 @@ def build(character):
     os.makedirs(folder, exist_ok=True)
     sprite = os.path.join(folder, "blips.m4a")
     pcm = (np.concatenate(parts) * 32767).astype(np.int16).tobytes()
+    raw = os.path.join(folder, "blips.raw.m4a")
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", str(SR), "-ac", "1", "-i", "-",
+         "-c:a", "aac", "-b:a", "192k", raw],
+        input=pcm,
+        check=True,
+    )
+    voice = remove_background(raw)
+    os.remove(raw)
+    voice = voice[: len(np.concatenate(parts))]
+    for s0, s1 in letters.values():
+        a, b = int(s0 * SR), int(s1 * SR)
+        voice[a:b] = shape(voice[a:b])
+    voice *= 0.8 / max(1e-6, float(np.abs(voice).max()))
     subprocess.run(
         ["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ar", str(SR), "-ac", "1", "-i", "-",
          "-c:a", "aac", "-b:a", "128k", sprite],
-        input=pcm,
+        input=(voice * 32767).astype(np.int16).tobytes(),
         check=True,
     )
     json.dump({"sprite": "blips.m4a", "letters": letters}, open(os.path.join(folder, "blips.json"), "w"))

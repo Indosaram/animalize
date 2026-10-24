@@ -21,6 +21,7 @@ import pykakasi
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PACKS = os.path.join(ROOT, "public", "local-packs")
 BANKS = os.path.join(ROOT, ".omo", "syllables")
+CLEAN = os.path.join(ROOT, ".omo", "clean-packs")
 WHISPER_MODEL = os.path.expanduser("~/.local/share/whisper/ggml-large-v3-turbo.bin")
 SR = 16000
 OUT_SR = 44100
@@ -123,19 +124,35 @@ def clip_morae(x):
     return found
 
 
+def denoise(y):
+    """Silence everything below the voice: frames under 12% of the slice's own peak energy are muted."""
+    w = int(0.005 * OUT_SR)
+    n = len(y) // w
+    if n < 2:
+        return y
+    env = np.sqrt((y[: n * w].reshape(n, w) ** 2).mean(axis=1) + 1e-12)
+    gate = np.clip((env / env.max() - 0.06) / 0.06, 0, 1)
+    gain = np.repeat(np.convolve(gate, np.ones(3) / 3, "same"), w)
+    out = y.copy()
+    out[: len(gain)] *= gain
+    out[len(gain) :] = 0
+    return out
+
+
 def build(character):
     names = json.load(open(os.path.join(PACKS, "index.json")))[character]
     gap = np.zeros(int(0.04 * OUT_SR), np.float32)
     parts, rows, t, whole = [], [], 0.0, 0
     for name in names:
         path = os.path.join(PACKS, character, name)
-        hi = load(path, OUT_SR)
+        clean = os.path.join(CLEAN, character, name.rsplit(".", 1)[0] + ".wav")
+        hi = load(clean if os.path.exists(clean) else path, OUT_SR)
         pieces = clip_morae(load(path, SR))
         if not pieces:
             pieces = [("ha", 0.0, min(len(hi) / OUT_SR, 0.6))]
             whole += 1
         for r, s0, s1 in pieces:
-            y = hi[int(s0 * OUT_SR) : int(s1 * OUT_SR)].copy()
+            y = denoise(hi[int(s0 * OUT_SR) : int(s1 * OUT_SR)].copy())
             if not len(y) or not r:
                 continue
             fade = min(len(y) // 4, int(0.008 * OUT_SR))
