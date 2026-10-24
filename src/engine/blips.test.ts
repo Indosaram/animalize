@@ -100,14 +100,13 @@ describe("character letter blips", () => {
       expect(started.length).toBe(0);
     }));
 
-  test("a user-uploaded pack still wins over the bundled bank", () =>
+  test("old saved sound files never override the synthesized character voice", () =>
     withBankFetch(async (requested) => {
       const { engine, started } = bankEngine("usagi");
       await engine.addPackClips("usagi", [{ data: new Uint8Array([0x52, 1]).buffer as ArrayBuffer, name: "mine.wav" }]);
       engine.handleKey("a");
       await engine.settled();
-      expect(requested.length).toBe(0);
-      expect(started.length).toBe(1);
-      expect(started[0].offset).toBe(0);
+      expect(requested).toEqual(["/banks/usagi/blips.json", "/banks/usagi/blips.m4a"]);
+      expect(started.map((s) => s.offset)).toEqual([startOf("a")]);
     }));
 });

@@ -107,7 +107,7 @@ bun run test         # voice engine tests
 bun run build:ext    # build the Chrome extension -> extension/dist
 ```
 
-- Character sound files: `public/local-packs/<character>/*.m4a` (listed in `index.json`). They are loaded automatically on first launch.
+- Character voices: `public/banks/<character>/blips.m4a`, synthesized Animal Crossing-style (no recordings). Regenerate with `python3 scripts/synth-voices.py`; each character's voice is set in `VOICES` there.
 - Releases: pushing a `v*` tag makes GitHub Actions build for Mac (signed and notarized), Windows, Linux and the Chrome extension, and upload them as a draft release.
 - Design tokens: [DESIGN.md](DESIGN.md)
 

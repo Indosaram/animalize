@@ -159,14 +159,10 @@ interface PlayRequest {
 const BANK_CHARACTERS = new Set(["chiikawa", "hachiware", "usagi", "momonga", "shisa", "kurimanju"]);
 const MAX_BANK_VOICES = 3;
 
-/** Per-character letter blips built by scripts/build-blip-banks.py: letter -> [start, end] seconds in one sprite. */
+/** Per-character synthesized letter blips (scripts/synth-voices.py): letter -> [start, end] seconds in one sprite. */
 interface BlipBank {
   letters: Record<string, [number, number]>;
   buffer: AudioBuffer;
-}
-
-function isSeededClipName(characterId: string, name: string): boolean {
-  return new RegExp(`^${characterId}-\\d+\\.m4a$`).test(name);
 }
 
 function mimeForName(name: string): string {
@@ -444,12 +440,11 @@ export class VoiceEngine {
     const ctx = this.getContext();
     if (!ctx) return;
     const characterId = this.settings.characterId;
-    const pack = req.kind === "voice" ? this.settings.packs[characterId] : undefined;
-    const customPack = pack?.length && !pack.every((c) => isSeededClipName(characterId, c.name));
-    if (req.kind === "voice" && !customPack && this.bankBase && this.hasBank(characterId)) {
+    if (req.kind === "voice" && this.bankBase && this.hasBank(characterId)) {
       void this.track(this.startBankPlayback(ctx, characterId, req));
       return;
     }
+    const pack = req.kind === "voice" ? this.settings.packs[characterId] : undefined;
     if (pack && pack.length) {
       const id = this.pickPackClip(characterId, pack);
       void this.track(this.startPackPlayback(ctx, id, this.character().speed, req.volume >= 0.7 ? 1 : 0.85));
@@ -485,7 +480,7 @@ export class VoiceEngine {
     return p;
   }
 
-  /** Plays the character's letter blip: an untouched slice of their real voice (no pitch or speed change). */
+  /** Plays the character's synthesized letter blip as built (no extra pitch or speed change). */
   private async startBankPlayback(ctx: AudioContext, characterId: string, req: PlayRequest): Promise<void> {
     if (ctx.state === "suspended") await ctx.resume();
     const bank = await this.loadBank(ctx, characterId);
