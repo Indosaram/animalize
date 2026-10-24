@@ -11,7 +11,7 @@ Each time you press a key, you hear a Chiikawa, Hachiware, Usagi, Kurimanju or A
 ## What it does
 
 - **Pick a character:** Chiikawa, Hachiware, Usagi, Kurimanju, plus Animal Crossing villager voices (4 male, 4 female). Click a card and it plays a sample right away.
-- **Works anywhere you type:** messengers, documents, the browser – any app.
+- **Works anywhere you type:** messengers, documents, the browser any app.
 - **Use your own sounds:** drop short sound files in and they play while you type.
 - **Turn it off in one click:** the big switch at the top silences it immediately.
 - **Your typing stays on your computer:** keystrokes are only used to pick a sound. Nothing is saved or sent over the internet.
