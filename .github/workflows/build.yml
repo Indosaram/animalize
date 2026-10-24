@@ -69,6 +69,7 @@ jobs:
           security find-identity -v -p codesigning build.keychain
 
       - name: Build and attach to draft release
+        id: tauri
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,6 +97,24 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Notarize and staple dmg
+        if: startsWith(matrix.platform, 'macos') && startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for dmg in src-tauri/target/*/release/bundle/dmg/*.dmg; do
+            xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+            xcrun stapler staple "$dmg"
+            spctl -a -vvv -t open --context context:primary-signature "$dmg"
+            name=$(basename "$dmg")
+            asset_id=$(gh api "repos/${{ github.repository }}/releases/${{ steps.tauri.outputs.releaseId }}/assets" --jq ".[] | select(.name==\"$name\") | .id")
+            [ -n "$asset_id" ] && gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$asset_id"
+            gh api -X POST -H "Content-Type: application/octet-stream" --input "$dmg" "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.tauri.outputs.releaseId }}/assets?name=$name" --jq .name
+          done
 
   extension:
     runs-on: ubuntu-latest
