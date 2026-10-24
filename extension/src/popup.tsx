@@ -10,6 +10,7 @@ import "@/index.css";
 const engine = new VoiceEngine({
   assetBase: chrome.runtime.getURL("").replace(/\/$/, ""),
   clipStore: createChromeStorageClipStore(),
+  bankBase: chrome.runtime.getURL("banks"),
 });
 (window as Window & { __animalizeEngine?: VoiceEngine }).__animalizeEngine = engine;
 

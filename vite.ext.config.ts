@@ -17,6 +17,7 @@ function copyStatic(): Plugin {
       cpSync(path.resolve(root, "public/assets/audio"), path.resolve(outDir, "assets/audio"), { recursive: true });
       cpSync(path.resolve(root, "public/assets/images"), path.resolve(outDir, "assets/images"), { recursive: true });
       cpSync(path.resolve(root, "public/assets/fonts"), path.resolve(outDir, "assets/fonts"), { recursive: true });
+      cpSync(path.resolve(root, "public/banks"), path.resolve(outDir, "banks"), { recursive: true });
       if (existsSync(path.resolve(root, "public/local-packs"))) {
         cpSync(path.resolve(root, "public/local-packs"), path.resolve(outDir, "local-packs"), { recursive: true });
       }

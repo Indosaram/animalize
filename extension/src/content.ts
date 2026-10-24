@@ -3,7 +3,7 @@ import { chromeStore } from "./chromeStore";
 import { createChromeStorageClipStore } from "./chromeClipStore";
 
 const assetBase = chrome.runtime.getURL("").replace(/\/$/, "");
-const engine = new VoiceEngine({ assetBase, clipStore: createChromeStorageClipStore() });
+const engine = new VoiceEngine({ assetBase, clipStore: createChromeStorageClipStore(), bankBase: `${assetBase}/banks` });
 const root = document.documentElement;
 
 const publish = () => {

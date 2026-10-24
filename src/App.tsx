@@ -13,7 +13,7 @@ declare global {
 const inTauri = () => "__TAURI_INTERNALS__" in window;
 
 export default function App() {
-  const engine = useMemo(() => new VoiceEngine({ assetBase: "", clipStore: createIndexedDbClipStore() }), []);
+  const engine = useMemo(() => new VoiceEngine({ assetBase: "", clipStore: createIndexedDbClipStore(), bankBase: "/banks" }), []);
 
   useEffect(() => {
     window.__animalizeEngine = engine;

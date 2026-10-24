@@ -37,6 +37,8 @@ export interface VoiceEngineOptions {
   audioContext?: () => AudioContext;
   /** where user-supplied character sound packs are stored */
   clipStore?: ClipStore;
+  /** URL of the folder holding <characterId>/blips.json voice banks; omit to disable */
+  bankBase?: string;
 }
 
 /** Phoneme map ported from the legacy src/utils/audioSystem.js (Hangul jamo + accented Latin). */
@@ -154,6 +156,19 @@ interface PlayRequest {
   letter?: string;
 }
 
+const BANK_CHARACTERS = new Set(["chiikawa", "hachiware", "usagi", "momonga", "shisa", "kurimanju"]);
+const MAX_BANK_VOICES = 3;
+
+/** Per-character letter blips built by scripts/build-blip-banks.py: letter -> [start, end] seconds in one sprite. */
+interface BlipBank {
+  letters: Record<string, [number, number]>;
+  buffer: AudioBuffer;
+}
+
+function isSeededClipName(characterId: string, name: string): boolean {
+  return new RegExp(`^${characterId}-\\d+\\.m4a$`).test(name);
+}
+
 function mimeForName(name: string): string {
   const ext = name.toLowerCase().split(".").pop() ?? "";
   const map: Record<string, string> = {
@@ -182,11 +197,15 @@ export class VoiceEngine {
   private readonly lastPackPick = new Map<string, string>();
   private readonly packVoices: AudioBufferSourceNode[] = [];
   private readonly pending = new Set<Promise<void>>();
+  private readonly bankBase?: string;
+  private readonly banks = new Map<string, Promise<BlipBank | null>>();
+  private readonly bankVoices: AudioBufferSourceNode[] = [];
 
   constructor(opts: VoiceEngineOptions) {
     this.assetRoot = `${opts.assetBase.replace(/\/+$/, "")}/assets/audio/`;
     this.ctxFactory = opts.audioContext;
     this.clipStore = opts.clipStore;
+    this.bankBase = opts.bankBase?.replace(/\/+$/, "");
   }
 
   /** Resolves once every playback started so far has been scheduled (or failed). */
@@ -319,6 +338,7 @@ export class VoiceEngine {
     const req = this.resolve(key);
     if (!req) return;
     const mode = this.settings.mode;
+    if (req.kind === "sfx" && this.bankBase && this.hasBank(this.settings.characterId)) return;
     if (mode === "voice" && req.kind === "sfx") return;
     if (mode === "sfx" && req.kind === "voice") return;
     this.play(req);
@@ -425,12 +445,82 @@ export class VoiceEngine {
     if (!ctx) return;
     const characterId = this.settings.characterId;
     const pack = req.kind === "voice" ? this.settings.packs[characterId] : undefined;
+    const customPack = pack?.length && !pack.every((c) => isSeededClipName(characterId, c.name));
+    if (req.kind === "voice" && !customPack && this.bankBase && this.hasBank(characterId)) {
+      void this.track(this.startBankPlayback(ctx, characterId, req));
+      return;
+    }
     if (pack && pack.length) {
       const id = this.pickPackClip(characterId, pack);
       void this.track(this.startPackPlayback(ctx, id, this.character().speed, req.volume >= 0.7 ? 1 : 0.85));
       return;
     }
     void this.track(this.startPlayback(ctx, req));
+  }
+
+  private hasBank(characterId: string): boolean {
+    return BANK_CHARACTERS.has(characterId);
+  }
+
+  private loadBank(ctx: AudioContext, characterId: string): Promise<BlipBank | null> {
+    let p = this.banks.get(characterId);
+    if (!p) {
+      const dir = `${this.bankBase}/${characterId}/`;
+      p = (async () => {
+        try {
+          const res = await fetch(dir + "blips.json");
+          if (!res.ok) return null;
+          const meta = (await res.json()) as { sprite: string; letters: Record<string, [number, number]> };
+          const audio = await fetch(dir + meta.sprite);
+          if (!audio.ok) return null;
+          const buffer = await ctx.decodeAudioData(await audio.arrayBuffer());
+          return { letters: meta.letters, buffer };
+        } catch (err) {
+          console.warn(`[animalize] voice bank for ${characterId} unavailable`, err);
+          return null;
+        }
+      })();
+      this.banks.set(characterId, p);
+    }
+    return p;
+  }
+
+  /** Plays the character's letter blip: an untouched slice of their real voice (no pitch or speed change). */
+  private async startBankPlayback(ctx: AudioContext, characterId: string, req: PlayRequest): Promise<void> {
+    if (ctx.state === "suspended") await ctx.resume();
+    const bank = await this.loadBank(ctx, characterId);
+    if (!bank) {
+      const pack = this.settings.packs[characterId];
+      if (pack?.length) await this.startPackPlayback(ctx, this.pickPackClip(characterId, pack), 1, 0.9);
+      else await this.startPlayback(ctx, req);
+      return;
+    }
+    const span = bank.letters[req.letter ?? "a"] ?? bank.letters.a;
+    if (!span) return;
+    const [start, end] = span;
+
+    const source = ctx.createBufferSource();
+    source.buffer = bank.buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = (req.volume >= 0.7 ? 1 : 0.9) * this.settings.volume * 0.95;
+    gain.connect(ctx.destination);
+    source.connect(gain);
+    source.playbackRate.value = 1;
+    source.detune.value = 0;
+    this.bankVoices.push(source);
+    source.onended = () => {
+      const i = this.bankVoices.indexOf(source);
+      if (i >= 0) this.bankVoices.splice(i, 1);
+    };
+    while (this.bankVoices.length > MAX_BANK_VOICES) {
+      const oldest = this.bankVoices.shift()!;
+      try {
+        oldest.stop();
+      } catch {
+        // already stopped
+      }
+    }
+    source.start(0, start, end - start);
   }
 
   private loadPackBuffer(ctx: AudioContext, id: string): Promise<AudioBuffer | null> {
