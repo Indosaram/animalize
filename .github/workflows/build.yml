@@ -52,10 +52,30 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Import Apple certificate
+        if: startsWith(matrix.platform, 'macos')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p actions build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p actions build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions build.keychain
+          rm certificate.p12
+          security find-identity -v -p codesigning build.keychain
+
       - name: Build and attach to draft release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: ${{ startsWith(matrix.platform, 'macos') && secrets.APPLE_SIGNING_IDENTITY || '' }}
+          APPLE_ID: ${{ startsWith(matrix.platform, 'macos') && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ startsWith(matrix.platform, 'macos') && secrets.APPLE_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ startsWith(matrix.platform, 'macos') && secrets.APPLE_TEAM_ID || '' }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Animalize ${{ github.ref_name }}'
@@ -70,7 +90,7 @@ jobs:
             | Linux | `*.AppImage` 또는 `*.deb` |
             | 크롬 확장 | `animalize-chrome-extension.zip` |
 
-            **Mac에서 "손상되었습니다/열 수 없습니다"가 뜨면**: 서명 전 앱이라 그래요. 터미널에서 `xattr -cr /Applications/animalize.app` 를 한 번 실행한 뒤 다시 여세요. 처음 실행하면 '손쉬운 사용' 권한을 켜 달라는 안내가 나와요.
+            **Mac**: 애플 개발자 서명·공증된 앱이라 바로 열려요. 처음 실행하면 '손쉬운 사용' 권한을 켜 달라는 안내가 나와요.
 
             **크롬 확장 설치**: zip을 풀고 `chrome://extensions` → 오른쪽 위 '개발자 모드' 켜기 → '압축해제된 확장 프로그램을 로드합니다' → 푼 폴더 선택.
           releaseDraft: true
