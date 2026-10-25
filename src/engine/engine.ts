@@ -159,10 +159,29 @@ interface PlayRequest {
 const BANK_CHARACTERS = new Set(["chiikawa", "hachiware", "usagi", "momonga", "shisa", "kurimanju"]);
 const MAX_BANK_VOICES = 3;
 
+/** Symbols that have their own synthesized sound in a character bank but no animalese sound effect. */
+const BANK_ONLY_SYMBOLS: Record<string, string> = {
+  "-": "minus",
+  _: "underscore",
+  "=": "equals",
+  "+": "plus",
+  ".": "period",
+  ",": "comma",
+  ";": "semicolon",
+  ":": "colon",
+  "'": "apostrophe",
+  '"': "quote",
+  "<": "less",
+  ">": "greater",
+  "|": "pipe",
+  "`": "backtick",
+};
+
 /** Bank entry for a key: a-z, 0-9 and the symbol names; hangul jamo use their animalese letter. */
 function bankKeyFor(key: string): string | null {
   if (key.length === 1 && /[0-9]/.test(key)) return key;
   if (SPECIAL_SFX[key]) return SPECIAL_SFX[key];
+  if (BANK_ONLY_SYMBOLS[key]) return BANK_ONLY_SYMBOLS[key];
   if (isAlpha(key)) return letterSound(key)?.toLowerCase() ?? null;
   return null;
 }

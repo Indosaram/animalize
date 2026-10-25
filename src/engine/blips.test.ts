@@ -3,7 +3,7 @@ import { createMemoryClipStore } from "./clipStore";
 import { VoiceEngine } from "./engine";
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
-const EXTRA = ["7", "0", "question", "exclamation"];
+const EXTRA = ["7", "0", "question", "exclamation", "minus"];
 const BLIPS = {
   sprite: "blips.m4a",
   letters: Object.fromEntries([...LETTERS, ...EXTRA].map((l, i) => [l, [i * 0.2, i * 0.2 + 0.1]])),
@@ -95,16 +95,16 @@ describe("character letter blips", () => {
   test("numbers and symbols play their own synthesized sound from the character's bank", () =>
     withBankFetch(async (requested) => {
       const { engine, started } = bankEngine("shisa");
-      for (const k of ["7", "0", "?", "!"]) engine.handleKey(k);
+      for (const k of ["7", "0", "?", "!", "-"]) engine.handleKey(k);
       await engine.settled();
       expect(requested.every((u) => u.startsWith("/banks/shisa/"))).toBe(true);
-      expect(started.map((s) => s.offset)).toEqual([startOf("7"), startOf("0"), startOf("question"), startOf("exclamation")]);
+      expect(started.map((s) => s.offset)).toEqual([startOf("7"), startOf("0"), startOf("question"), startOf("exclamation"), startOf("minus")]);
     }));
 
   test("space, enter, backspace and arrows stay silent instead of playing animalese sound effects", () =>
     withBankFetch(async (requested) => {
       const { engine, started } = bankEngine("shisa");
-      for (const k of ["Space", "Enter", "Backspace", "ArrowLeft", ","]) engine.handleKey(k);
+      for (const k of ["Space", "Enter", "Backspace", "ArrowLeft", "Shift"]) engine.handleKey(k);
       await engine.settled();
       expect(requested.length).toBe(0);
       expect(started.length).toBe(0);

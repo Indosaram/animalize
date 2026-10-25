@@ -3,7 +3,7 @@
 input:  <gen>/<character>/<key>_<take>.wav (scripts/voxcpm-keys.py output), <keys.json> {key: spoken text}
 output: public/banks/<character>/blips.m4a + blips.json {sprite, letters: {key: [start, end]}}
 
-Every take is transcribed with whisper; the take whose transcript is closest to the key's text wins
+Every take's transcript comes from <gen>/heard.json (scripts/voxcpm-transcribe.py, run on the GPU PC); the take whose transcript is closest to the key's text wins
 (ties go to the one with the most voiced sound). Silence is trimmed, length capped, loudness evened out.
 usage: python3 scripts/build-voxcpm-bank.py <gen-dir> <keys.json> [character ...]
 """
@@ -19,19 +19,20 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pyworld as pw
+import soundfile as sf
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BANKS = os.path.join(ROOT, "public", "banks")
-WHISPER = "/opt/homebrew/bin/whisper-cli"
-MODEL = os.path.expanduser("~/.local/share/whisper/ggml-large-v3-turbo.bin")
 SR = 44100
-MAX_LEN = 0.45
+TARGET_LEN = 0.2
 GAP = 0.04
+HEARD = {}
+SAME_SOUND = {"q": ("cue", "kyu"), "r": ("ar",), "8": ("ate",), "2": ("too", "to"), "4": ("for",), "u": ("yu",)}
 
 
 def kana(text):
     out = "".join(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c for c in text)
-    return "".join(c for c in out if "ぁ" <= c <= "ゖ" or c == "ー" or c.isalnum())
+    return "".join(c for c in out if "ぁ" <= c <= "ゖ" or c == "ー" or c.isalnum()).lower()
 
 
 def load(path):
@@ -40,12 +41,9 @@ def load(path):
     return np.frombuffer(raw, dtype=np.int16).astype(np.float64) / 32768
 
 
-def transcribe(path):
-    with tempfile.TemporaryDirectory() as tmp:
-        wav = os.path.join(tmp, "in.wav")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-ar", "16000", "-ac", "1", "-af", "apad=pad_dur=0.6", wav], check=True)
-        r = subprocess.run([WHISPER, "-m", MODEL, "-l", "ja", "-nt", "-np", "-t", "2", "-f", wav], capture_output=True, text=True)
-    return r.stdout.strip()
+def heard_text(path):
+    character, name = os.path.basename(os.path.dirname(path)), os.path.basename(path)
+    return HEARD.get(character, {}).get(name, "")
 
 
 def trim(y):
@@ -54,11 +52,22 @@ def trim(y):
     on = np.where(env > 0.08 * env.max())[0]
     if not len(on):
         return None
-    s, e = max(0, on[0] - int(0.01 * SR)), min(len(y), on[-1] + int(0.03 * SR))
-    clip = y[s:e][: int(MAX_LEN * SR)].copy()
+    s, e = max(0, on[0] - int(0.01 * SR)), min(len(y), on[-1] + int(0.02 * SR))
+    return y[s:e].copy()
+
+
+def shorten(clip):
+    """Speed the take up to TARGET_LEN without changing its pitch or timbre (rubberband R3, formants kept)."""
+    if len(clip) > TARGET_LEN * SR:
+        with tempfile.TemporaryDirectory() as tmp:
+            src, dst = os.path.join(tmp, "in.wav"), os.path.join(tmp, "out.wav")
+            sf.write(src, clip, SR)
+            subprocess.run(["rubberband", "-3", "-F", "-q", "-D", str(TARGET_LEN), src, dst], check=True, capture_output=True)
+            clip, _ = sf.read(dst)
+    clip = clip[: int(TARGET_LEN * SR)].copy()
     fade = int(0.004 * SR)
     clip[:fade] *= np.linspace(0, 1, fade)
-    tail = min(len(clip) // 3, int(0.04 * SR))
+    tail = min(len(clip) // 3, int(0.03 * SR))
     clip[-tail:] *= np.linspace(1, 0, tail) ** 2
     return clip
 
@@ -69,7 +78,7 @@ def voiced(clip):
 
 
 def score_take(path, key, text):
-    heard = transcribe(path)
+    heard = heard_text(path)
     clip = trim(load(path))
     if clip is None or len(clip) < int(0.06 * SR):
         return None
@@ -79,6 +88,8 @@ def score_take(path, key, text):
     match = difflib.SequenceMatcher(None, target, got).ratio()
     literal = key.lower() if len(key) == 1 else None
     if literal and got.lower().strip("!?.。！？") == literal:
+        match = 1.0
+    if got in SAME_SOUND.get(key, ()):
         match = 1.0
     return match, vr, f0, heard, clip
 
@@ -100,9 +111,9 @@ def build(gen, keys, character):
     parts, letters, t = [], {}, 0.0
     gap = np.zeros(int(GAP * SR))
     for key in keys:
-        clip = best[key][4]
+        clip = shorten(best[key][4])
         rms = float(np.sqrt((clip**2).mean()))
-        clip = clip * min(0.22 / max(rms, 1e-6), 0.95 / max(float(np.abs(clip).max()), 1e-6))
+        clip = clip * min(0.16 / max(rms, 1e-6), 0.7 / max(float(np.abs(clip).max()), 1e-6))
         letters[key] = [round(t, 4), round(t + len(clip) / SR, 4)]
         parts.extend([clip, gap])
         t += (len(clip) + len(gap)) / SR
@@ -119,6 +130,7 @@ def build(gen, keys, character):
 
 if __name__ == "__main__":
     gen, keys_path = sys.argv[1], sys.argv[2]
+    HEARD.update(json.load(open(os.path.join(gen, "heard.json"), encoding="utf-8")))
     keys = json.load(open(keys_path, encoding="utf-8"))
     chars = sys.argv[3:] or sorted(d for d in os.listdir(gen) if os.path.isdir(os.path.join(gen, d)))
     full = {}
