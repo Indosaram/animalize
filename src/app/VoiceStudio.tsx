@@ -112,7 +112,6 @@ function SliderRow({
 export default function VoiceStudio({ engine, store, platform, extra }: VoiceStudioProps) {
   const [settings, setSettingsState] = useState<Settings>(() => engine.getSettings());
   const [loaded, setLoaded] = useState(false);
-  const [showBasic, setShowBasic] = useState(false);
   const [showCustom, setShowCustom] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const compact = platform === "extension";
@@ -205,22 +204,12 @@ export default function VoiceStudio({ engine, store, platform, extra }: VoiceStu
             <CharacterCard key={c.id} character={c} compact={compact} selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
           ))}
         </div>
-        <button
-          type="button"
-          className="flex min-h-11 cursor-pointer items-center gap-1 self-start rounded-lg px-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-          onClick={() => setShowBasic((v) => !v)}
-          aria-expanded={showBasic}
-        >
-          <ChevronDown className={cn("size-4 transition-transform", showBasic && "rotate-180")} />
-          기본 동물 목소리 더 보기 (8개)
-        </button>
-        {showBasic ? (
-          <div className={cn("grid gap-3", compact ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4")}>
-            {BASIC.map((c) => (
-              <CharacterCard key={c.id} character={c} compact selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
-            ))}
-          </div>
-        ) : null}
+        <h3 className="pt-2 text-base font-bold">동물의숲 목소리</h3>
+        <div className={cn("grid gap-3", compact ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4")}>
+          {BASIC.map((c) => (
+            <CharacterCard key={c.id} character={c} compact selected={settings.characterId === c.id} onSelect={() => selectCharacter(c.id)} />
+          ))}
+        </div>
       </section>
 
       <div className={cn("grid gap-4", compact ? "" : "md:grid-cols-2")}>
