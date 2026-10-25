@@ -159,7 +159,7 @@ interface PlayRequest {
 const BANK_CHARACTERS = new Set(["chiikawa", "hachiware", "usagi", "momonga", "shisa", "kurimanju"]);
 const MAX_BANK_VOICES = 3;
 
-/** Per-character synthesized letter blips (scripts/synth-voices.py): letter -> [start, end] seconds in one sprite. */
+/** Per-character letter blips generated with VoxCPM2 (scripts/build-voxcpm-blips.py): letter -> [start, end] seconds in one sprite. */
 interface BlipBank {
   letters: Record<string, [number, number]>;
   buffer: AudioBuffer;

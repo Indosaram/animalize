@@ -31,3 +31,5 @@ dist-ssr
 cert.b64
 cert.p12
 extract_cert_info.py
+
+scripts/__pycache__
