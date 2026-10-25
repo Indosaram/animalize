@@ -3,11 +3,12 @@ import { createMemoryClipStore } from "./clipStore";
 import { VoiceEngine } from "./engine";
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
+const EXTRA = ["7", "0", "question", "exclamation"];
 const BLIPS = {
   sprite: "blips.m4a",
-  letters: Object.fromEntries([...LETTERS].map((l, i) => [l, [i * 0.2, i * 0.2 + 0.1]])),
+  letters: Object.fromEntries([...LETTERS, ...EXTRA].map((l, i) => [l, [i * 0.2, i * 0.2 + 0.1]])),
 };
-const startOf = (letter: string) => BLIPS.letters[letter][0];
+const startOf = (letter: string) => (BLIPS.letters as Record<string, number[]>)[letter][0];
 
 function fakeBankContext() {
   const started: { offset: number; duration: number; detune: number; rate: number }[] = [];
@@ -91,10 +92,19 @@ describe("character letter blips", () => {
       expect(requested.filter((u) => u.endsWith("blips.json"))).toEqual(["/banks/chiikawa/blips.json", "/banks/kurimanju/blips.json"]);
     }));
 
-  test("keys without a voice stay silent instead of playing animalese sound effects", () =>
+  test("numbers and symbols play their own synthesized sound from the character's bank", () =>
     withBankFetch(async (requested) => {
       const { engine, started } = bankEngine("shisa");
-      for (const k of ["Space", "Enter", "Backspace", "?", "!", "ArrowLeft", ","]) engine.handleKey(k);
+      for (const k of ["7", "0", "?", "!"]) engine.handleKey(k);
+      await engine.settled();
+      expect(requested.every((u) => u.startsWith("/banks/shisa/"))).toBe(true);
+      expect(started.map((s) => s.offset)).toEqual([startOf("7"), startOf("0"), startOf("question"), startOf("exclamation")]);
+    }));
+
+  test("space, enter, backspace and arrows stay silent instead of playing animalese sound effects", () =>
+    withBankFetch(async (requested) => {
+      const { engine, started } = bankEngine("shisa");
+      for (const k of ["Space", "Enter", "Backspace", "ArrowLeft", ","]) engine.handleKey(k);
       await engine.settled();
       expect(requested.length).toBe(0);
       expect(started.length).toBe(0);

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Generate Animal Crossing-style syllables in each character's voice with VoxCPM2 (runs on the Windows GPU box).
+"""Synthesize one short sound per key in each character's voice with VoxCPM2 (runs on the Windows GPU box).
 
-input:  <job>/refs/<character>.wav (+ <character>.txt transcript), <job>/syllables.json {letter: text}
-output: <job>/out/<character>/<letter>_<take>.wav
+input:  <job>/refs/<character>.wav + <character>.txt (transcript of the reference), <job>/keys.json {key: text} (scripts/voxcpm-keys.json)
+output: <job>/out/<character>/<key>_<take>.wav, progress in <job>/run.log
+usage:  python voxcpm-keys.py <job> [takes]
 """
 
 import json
@@ -26,28 +27,26 @@ sys.stdout = log
 sys.stderr = log
 print("START", time.strftime("%H:%M:%S"), flush=True)
 
-syllables = json.load(open(os.path.join(JOB, "syllables.json"), encoding="utf-8"))
+keys = json.load(open(os.path.join(JOB, "keys.json"), encoding="utf-8"))
 model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False, device="cuda")
 print("MODEL_READY", flush=True)
 
 for ref in sorted(f for f in os.listdir(os.path.join(JOB, "refs")) if f.endswith(".wav")):
     character = ref[:-4]
     ref_wav = os.path.join(JOB, "refs", ref)
-    ref_txt = os.path.join(JOB, "refs", character + ".txt")
-    prompt_text = open(ref_txt, encoding="utf-8").read().strip() if os.path.exists(ref_txt) else None
+    prompt_text = open(os.path.join(JOB, "refs", character + ".txt"), encoding="utf-8").read().strip()
     out = os.path.join(JOB, "out", character)
     os.makedirs(out, exist_ok=True)
+    own_keys = os.path.join(JOB, "refs", character + ".keys.json")
+    char_keys = json.load(open(own_keys, encoding="utf-8")) if os.path.exists(own_keys) else keys
     t0 = time.time()
-    for letter, text in syllables.items():
+    for key, text in char_keys.items():
         for take in range(TAKES):
-            path = os.path.join(out, f"{letter}_{take}.wav")
+            path = os.path.join(out, f"{key}_{take}.wav")
             if os.path.exists(path):
                 continue
-            kwargs = dict(text=text, reference_wav_path=ref_wav, cfg_value=2.0, inference_timesteps=10,
-                          max_len=200, normalize=False, denoise=False)
-            if prompt_text:
-                kwargs.update(prompt_wav_path=ref_wav, prompt_text=prompt_text)
-            wav = model.generate(**kwargs)
+            wav = model.generate(text=text, prompt_wav_path=ref_wav, prompt_text=prompt_text, reference_wav_path=ref_wav,
+                                 cfg_value=2.0, inference_timesteps=10, max_len=120, normalize=False, denoise=False)
             sf.write(path, wav, 48000)
     print(f"DONE {character} {time.time() - t0:.1f}s", flush=True)
 print("ALL_DONE", flush=True)

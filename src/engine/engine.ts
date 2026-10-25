@@ -159,7 +159,15 @@ interface PlayRequest {
 const BANK_CHARACTERS = new Set(["chiikawa", "hachiware", "usagi", "momonga", "shisa", "kurimanju"]);
 const MAX_BANK_VOICES = 3;
 
-/** Per-character letter blips generated with VoxCPM2 (scripts/build-voxcpm-blips.py): letter -> [start, end] seconds in one sprite. */
+/** Bank entry for a key: a-z, 0-9 and the symbol names; hangul jamo use their animalese letter. */
+function bankKeyFor(key: string): string | null {
+  if (key.length === 1 && /[0-9]/.test(key)) return key;
+  if (SPECIAL_SFX[key]) return SPECIAL_SFX[key];
+  if (isAlpha(key)) return letterSound(key)?.toLowerCase() ?? null;
+  return null;
+}
+
+/** Per-character key sounds generated with VoxCPM2 (scripts/build-voxcpm-bank.py): key -> [start, end] seconds in one sprite. */
 interface BlipBank {
   letters: Record<string, [number, number]>;
   buffer: AudioBuffer;
@@ -334,7 +342,11 @@ export class VoiceEngine {
     const req = this.resolve(key);
     if (!req) return;
     const mode = this.settings.mode;
-    if (req.kind === "sfx" && this.bankBase && this.hasBank(this.settings.characterId)) return;
+    if (this.bankBase && this.hasBank(this.settings.characterId)) {
+      const bankKey = bankKeyFor(key);
+      if (bankKey && mode !== "sfx") this.play({ ...req, kind: "voice", letter: bankKey });
+      return;
+    }
     if (mode === "voice" && req.kind === "sfx") return;
     if (mode === "sfx" && req.kind === "voice") return;
     this.play(req);
@@ -490,7 +502,7 @@ export class VoiceEngine {
       else await this.startPlayback(ctx, req);
       return;
     }
-    const span = bank.letters[req.letter ?? "a"] ?? bank.letters.a;
+    const span = bank.letters[req.letter ?? "a"];
     if (!span) return;
     const [start, end] = span;
 
