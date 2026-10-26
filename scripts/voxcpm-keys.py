@@ -28,7 +28,14 @@ sys.stderr = log
 print("START", time.strftime("%H:%M:%S"), flush=True)
 
 keys = json.load(open(os.path.join(JOB, "keys.json"), encoding="utf-8"))
-model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False, device="cuda")
+lora = os.path.join(JOB, "lora")
+lora_config = None
+if os.path.isdir(lora):
+    from voxcpm.model.voxcpm2 import LoRAConfig
+
+    lora_config = LoRAConfig(**json.load(open(os.path.join(lora, "lora_config.json"), encoding="utf-8"))["lora_config"])
+model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False, device="cuda",
+                               lora_config=lora_config, lora_weights_path=lora if lora_config else None)
 print("MODEL_READY", flush=True)
 
 for ref in sorted(f for f in os.listdir(os.path.join(JOB, "refs")) if f.endswith(".wav")):
